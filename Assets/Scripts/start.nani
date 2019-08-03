@@ -28,12 +28,13 @@ r: Cm’on! Aren’t you gonna give me a proper hug?
 
 @hide r
 @wait 1.0
-@back image_hug.DropFade time:1.5
+@back CG/image_hug.DropFade time:1.5
 @wait 1.0
 Before being able to say a thing Ray comes closer and put his manly arms around my waist, suddenly lifting me.
 I wonder when did he become that strong?
 @wait 1.0
 @back screen_exterior_night.DropFade time:1.5
+@unlock CG/image_hug
 @char r.surprised
 r: Are you ok?
 @wait 1.0
@@ -86,7 +87,6 @@ As arrogant as always...
 r: Don’t talk to her like that or you will regret it...
 @char a.bragging pos:80,0
 a: How will I regret it? Enlighten me, please.
-@fx ShakeCharacter r a
 You two! Calm down already… We majors are supposed to be a reference for younger students.
 @char r.huh pos:20,0
 @char a.explain pos:80,0
@@ -146,7 +146,7 @@ a: The specializations. I hope you choose well....
 a: And by well I mean Dark Arts.
 Well… I’m not quite sure yet.
 @char a.surprised pos:50,0
-@fx ShakeCharacter a
+@fx ShakeCharacter.a
 a: Are you for real? With your grades… It’s an easy election, even for a Phoenix.
 There are other things I have to take into consideration, you know? It’s not just… grades.
 @char a.doubt pos:50,0
@@ -183,6 +183,5 @@ a: It’s supper time. See you later.
 ...
 What was that about? That narcissistic brat… I can’t believe I have to share dorms with that bully...
 I guess I’ll look for Ray at the dining hall.
-
 
 @stop

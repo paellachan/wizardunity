@@ -7,6 +7,6 @@
     "values": [
         "{\n    \"keys\": [],\n    \"values\": []\n}",
         "{\n    \"PlayedScriptRegister\": {\n        \"playedScripts\": [\n            {\n                \"ScriptName\": \"start\",\n                \"PlayedIndexes\": [\n                    {\n                        \"startIndex\": 0,\n                        \"endIndex\": 66\n                    }\n                ]\n            }\n        ]\n    }\n}",
-        "{\n    \"UnlockablesMap\": {\n        \"keys\": [],\n        \"values\": []\n    }\n}"
+        "{\n    \"UnlockablesMap\": {\n        \"keys\": [\n            \"CG/image_hug\"\n        ],\n        \"values\": [\n            true\n        ]\n    }\n}"
     ]
 }

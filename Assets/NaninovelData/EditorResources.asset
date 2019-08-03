@@ -137,13 +137,13 @@ MonoBehaviour:
     - Name: screen_exterior_night
       PathPrefix: Backgrounds/MainBackground
       Guid: 971a95389b7f30d47809555e4c02940f
-    - Name: image_door
+    - Name: CG/image_door
       PathPrefix: Backgrounds/MainBackground
       Guid: 394dbf29098943b48a7ece96db6a2c44
-    - Name: image_hug
+    - Name: CG/image_hug
       PathPrefix: Backgrounds/MainBackground
       Guid: 472677da93f8bfd4eb5ed2ec1e69907c
-    - Name: image_route_alex1
+    - Name: CG/image_route_alex1
       PathPrefix: Backgrounds/MainBackground
       Guid: d97be9fc69b16174ba219f4cbaee284f
   - Id: Scripts
@@ -175,13 +175,4 @@ MonoBehaviour:
       PathPrefix: Audio
       Guid: e77b8c774e0b9b34ca415d198a8d048a
   - Id: Unlockables
-    Resources:
-    - Name: image_hug
-      PathPrefix: Unlockables
-      Guid: 472677da93f8bfd4eb5ed2ec1e69907c
-    - Name: image_door
-      PathPrefix: Unlockables
-      Guid: 80c24022f1a60334fa8b6fa665514db2
-    - Name: image_route_alex1
-      PathPrefix: Unlockables
-      Guid: d97be9fc69b16174ba219f4cbaee284f
+    Resources: []
