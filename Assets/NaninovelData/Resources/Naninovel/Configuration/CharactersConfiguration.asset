@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3be34281d83bad429e22787cd3c8069, type: 3}
+  m_Name: CharactersConfiguration
+  m_EditorClassIdentifier: 
+  DefaultEasing: 1
+  SceneOrigin: {x: 0.5, y: 0}
+  AutoArrangeOnAdd: 1
+  DefaultMetadata:
+    Implementation: Naninovel.SpriteCharacter
+    LoaderConfiguration:
+      PathPrefix: Characters
+      ProviderTypes: 0000000001000000
+    guid: 8324744a-a2c6-4680-b00e-c824498269eb
+    Pivot: {x: 0.5, y: 0}
+    PixelsPerUnit: 100
+    BakedLookDirection: 1
+    DisplayName: 
+    UseCharacterColor: 0
+    NameColor: {r: 1, g: 1, b: 1, a: 1}
+    MessageColor: {r: 1, g: 1, b: 1, a: 1}
+    HighlightWhenSpeaking: 0
+    SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
+    NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    MessageSound: 
+  Metadata:
+    ids:
+    - r
+    - a
+    - m
+    metas:
+    - Implementation: Naninovel.SpriteCharacter
+      LoaderConfiguration:
+        PathPrefix: Characters
+        ProviderTypes: 0000000001000000
+      guid: 99f0879e-84b2-42a6-b732-0645d1bf8aa7
+      Pivot: {x: 0.5, y: 0}
+      PixelsPerUnit: 100
+      BakedLookDirection: 1
+      DisplayName: Ray
+      UseCharacterColor: 1
+      NameColor: {r: 1, g: 0.63459694, b: 0.3820755, a: 1}
+      MessageColor: {r: 1, g: 0.88090295, b: 0.7688679, a: 1}
+      HighlightWhenSpeaking: 0
+      SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
+      NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      MessageSound: 
+    - Implementation: Naninovel.SpriteCharacter
+      LoaderConfiguration:
+        PathPrefix: Characters
+        ProviderTypes: 0000000001000000
+      guid: 7c9a092a-1da2-4a10-9097-90be800f4cf7
+      Pivot: {x: 0.5, y: 0}
+      PixelsPerUnit: 100
+      BakedLookDirection: 1
+      DisplayName: Alexander
+      UseCharacterColor: 1
+      NameColor: {r: 0.495283, g: 0.87469316, b: 1, a: 1}
+      MessageColor: {r: 0.7877358, g: 1, b: 0.9959264, a: 1}
+      HighlightWhenSpeaking: 0
+      SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
+      NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      MessageSound: 
+    - Implementation: Naninovel.SpriteCharacter
+      LoaderConfiguration:
+        PathPrefix: Characters
+        ProviderTypes: 0000000001000000
+      guid: f821f7ec-ec2a-4a4e-98b1-d3952f1c4a09
+      Pivot: {x: 0.5, y: 0}
+      PixelsPerUnit: 100
+      BakedLookDirection: 1
+      DisplayName: Director Minerva Black
+      UseCharacterColor: 1
+      NameColor: {r: 0.3254717, g: 1, b: 0.67093074, a: 1}
+      MessageColor: {r: 0.8349056, g: 1, b: 0.90364957, a: 1}
+      HighlightWhenSpeaking: 0
+      SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
+      NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      MessageSound: 
+  AvatarLoader:
+    PathPrefix: CharacterAvatars
+    ProviderTypes: 0000000001000000

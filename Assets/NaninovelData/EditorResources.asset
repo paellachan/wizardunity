@@ -1,0 +1,187 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06386b10f29c770408fc88b031c4d7fd, type: 3}
+  m_Name: EditorResources
+  m_EditorClassIdentifier: 
+  resourceCategories:
+  - Id: CharacterAvatars
+    Resources: []
+  - Id: Characters/99f0879e-84b2-42a6-b732-0645d1bf8aa7
+    Resources:
+    - Name: angry
+      PathPrefix: Characters/r
+      Guid: 553da77f5c1119042bb4373b1f874502
+    - Name: complain
+      PathPrefix: Characters/r
+      Guid: 3351aee13c5b13c4a92133102fe4dac6
+    - Name: happy
+      PathPrefix: Characters/r
+      Guid: 10182c8d457eb9644b6799f2d8a580cc
+    - Name: hey
+      PathPrefix: Characters/r
+      Guid: 3b6a332b39477c84b8246849fb6ea5f0
+    - Name: huh
+      PathPrefix: Characters/r
+      Guid: ecd2279c84bd737489e2ef4b824369b7
+    - Name: joking
+      PathPrefix: Characters/r
+      Guid: 5f673beee515dfd4f914e68214951a06
+    - Name: mad
+      PathPrefix: Characters/r
+      Guid: a29254f39639f3c48a5b6933b8f8aabf
+    - Name: normal
+      PathPrefix: Characters/r
+      Guid: 2cc38cfafe253024d9716f11ed2acb25
+    - Name: okay
+      PathPrefix: Characters/r
+      Guid: f5d537560809ae144b68f02c30132502
+    - Name: serious
+      PathPrefix: Characters/r
+      Guid: c0f47427f5381744282be0e3503c60bc
+    - Name: shy
+      PathPrefix: Characters/r
+      Guid: 9919c2019a6f7664a9d65dd9e869dfaf
+    - Name: smile
+      PathPrefix: Characters/r
+      Guid: b535829e1dfb09143af75ea6ab4ab9a3
+    - Name: surprised
+      PathPrefix: Characters/r
+      Guid: ad11b7f24cd7f1b40baa4fe52ec79cb6
+    - Name: worried
+      PathPrefix: Characters/r
+      Guid: c68f98352ca78d94f850c00e41e3439c
+  - Id: Characters/7c9a092a-1da2-4a10-9097-90be800f4cf7
+    Resources:
+    - Name: bragging
+      PathPrefix: Characters/a
+      Guid: 46832e0c283376b49a4ca6eb40b3ccfe
+    - Name: chatting
+      PathPrefix: Characters/a
+      Guid: 366d35c2f61a720478f216ce42f3b160
+    - Name: complain
+      PathPrefix: Characters/a
+      Guid: 82fda662bf1fe4b47846b7a713981ddc
+    - Name: doubt
+      PathPrefix: Characters/a
+      Guid: 16813549e1a382541a929a72115f687b
+    - Name: explain
+      PathPrefix: Characters/a
+      Guid: b96f1b8c3b3bde94ca7e78f2257d2f8d
+    - Name: happy
+      PathPrefix: Characters/a
+      Guid: 452837800cbe03742b726bebb70bf31d
+    - Name: hum
+      PathPrefix: Characters/a
+      Guid: e931c8019e46bac4d847a1a06819f9a5
+    - Name: mad
+      PathPrefix: Characters/a
+      Guid: bcd7b6c0b245be24f8b56fa18f18264c
+    - Name: normal
+      PathPrefix: Characters/a
+      Guid: 9158a3c925c24c84294fd6f29ae92531
+    - Name: psycho
+      PathPrefix: Characters/a
+      Guid: edb4556119ae5444bbfbe9f71edd2402
+    - Name: surprised
+      PathPrefix: Characters/a
+      Guid: 4f649242f961a434f8005eefebf3f289
+    - Name: worried
+      PathPrefix: Characters/a
+      Guid: bd93a8ac7e96d8442a2899a8724cc794
+    - Name: happy
+      PathPrefix: Characters/a
+      Guid: 92472609e3c17174aa33afa6be695cd6
+  - Id: Characters/f821f7ec-ec2a-4a4e-98b1-d3952f1c4a09
+    Resources:
+    - Name: circumstance
+      PathPrefix: Characters/m
+      Guid: a5c0680304c50d547891b8eb22f0a672
+    - Name: normal
+      PathPrefix: Characters/m
+      Guid: 80382dfd8ccaa4a44b6c919b7235596b
+    - Name: worried
+      PathPrefix: Characters/m
+      Guid: 483c0121231b75746903391d665aeb94
+  - Id: Backgrounds/bc853f26-6eb5-4d43-b823-f870e31ccab4
+    Resources:
+    - Name: screen_black
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 1e82d16de909e794b906feabf9051e6c
+    - Name: screen_canteen
+      PathPrefix: Backgrounds/MainBackground
+      Guid: f4c790cb3402f9a408ebeb526de60a34
+    - Name: screen_classroom
+      PathPrefix: Backgrounds/MainBackground
+      Guid: b1d1366f94a535f4cbb2b22bdd3dfbf8
+    - Name: screen_corridor
+      PathPrefix: Backgrounds/MainBackground
+      Guid: dd0246e6e5858604593f5570154883ea
+    - Name: screen_door
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 7f0a4ddaee8918e4a8ac00bcc48f8085
+    - Name: screen_dormcommon
+      PathPrefix: Backgrounds/MainBackground
+      Guid: e9486373bebac474ca133b7c84ecce38
+    - Name: screen_exterior_day
+      PathPrefix: Backgrounds/MainBackground
+      Guid: abc29be6c19e10046bb07bf7089de5c9
+    - Name: screen_exterior_night
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 971a95389b7f30d47809555e4c02940f
+    - Name: image_door
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 394dbf29098943b48a7ece96db6a2c44
+    - Name: image_hug
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 472677da93f8bfd4eb5ed2ec1e69907c
+    - Name: image_route_alex1
+      PathPrefix: Backgrounds/MainBackground
+      Guid: d97be9fc69b16174ba219f4cbaee284f
+  - Id: Scripts
+    Resources:
+    - Name: start
+      PathPrefix: Scripts
+      Guid: bd74204837304834a9d15bf93f1a1ae9
+  - Id: Audio
+    Resources:
+    - Name: alex_music
+      PathPrefix: Audio
+      Guid: 8c5a0244c8a151c4da2fc87bf4d28b24
+    - Name: audiobump
+      PathPrefix: Audio
+      Guid: e77b8c774e0b9b34ca415d198a8d048a
+    - Name: relaxed_music
+      PathPrefix: Audio
+      Guid: 1fedddea111d1bf4da2d4878bf649462
+    - Name: menu_music
+      PathPrefix: Audio
+      Guid: fc87f31b78fd319489e75c42011d1a69
+    - Name: audiobump
+      PathPrefix: Audio
+      Guid: 1d89857d8530e37468b1262f6bf54539
+    - Name: audioscreamwoman
+      PathPrefix: Audio
+      Guid: 596b2ba15acec0549ab0dab0ef399e9b
+    - Name: funny_music
+      PathPrefix: Audio
+      Guid: e77b8c774e0b9b34ca415d198a8d048a
+  - Id: Unlockables
+    Resources:
+    - Name: image_hug
+      PathPrefix: Unlockables
+      Guid: 472677da93f8bfd4eb5ed2ec1e69907c
+    - Name: image_door
+      PathPrefix: Unlockables
+      Guid: 80c24022f1a60334fa8b6fa665514db2
+    - Name: image_route_alex1
+      PathPrefix: Unlockables
+      Guid: d97be9fc69b16174ba219f4cbaee284f

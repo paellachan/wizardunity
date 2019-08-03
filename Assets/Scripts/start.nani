@@ -1,0 +1,188 @@
+@back screen_black
+@back screen_exterior_night.CircleReveal
+@bgm relaxed_music
+@printer Wide
+@wait 1.5
+
+¨Such a cold September...¨ I think to myself as I reach the entrance of the castle. I feel as overwhelmed as the first time I came here.
+The castle was outstandingly beautiful. Thousands of enchanted lamps floated around illuminating the exterior.
+Loads of younger students are arriving. It makes me feel nostalgic.
+I can't believe 5 years ago I was also one of them.
+Suddenly I bump into someone.
+@sfx audiobump
+@fx ShakeBackground
+r: Oi!
+@wait 0.5
+I look up and see a very tall, tanned and muscular young man with pitch black hair.
+r: Why didn’t you tell me you were already here?!
+@stopBgm time:1
+@wait 1.0
+@bgm funny_music
+@char r.normal
+@fx ShakeBackground
+Ray??!!
+@char r.surprised
+r: What’s gotten into you?
+@char r.happy
+r: Cm’on! Aren’t you gonna give me a proper hug?
+
+@hide r
+@wait 1.0
+@back image_hug.DropFade time:1.5
+@wait 1.0
+Before being able to say a thing Ray comes closer and put his manly arms around my waist, suddenly lifting me.
+I wonder when did he become that strong?
+@wait 1.0
+@back screen_exterior_night.DropFade time:1.5
+@char r.surprised
+r: Are you ok?
+@wait 1.0
+@char r.worried
+r: You pretty much ignored me during the whole summer break…I thought you were mad at me or something...
+It’s not like that! I was busy studying... Did you forget about our specialization?
+@char r.hey
+And also… You were with Florence and...
+@char r.surprised
+r: Oh, that…
+@char r.worried
+r: Actually we broke up just after summer break started…
+I’m sorry… I lied. (Florence was an insufferable bitch.)Not to say she’s one of the Corvus…
+@char r.okay
+How are you feeling? Gosh... After all the things we went through those 5 years I wasn’t there when you needed me.
+@char r.shy
+r: Now I am the one who feels bad!
+@char r.hey
+I almost cannot pay attention to what Ray is saying. He has grown so much during the summer...
+Not only his height but also his overall physique has become bigger. Manlier.
+He looks so different from that lively energetic child I became friends with when I first arrived here.
+@char r.huh
+r: Hey! Are you listening to me?
+Sorry! It's just that you look…
+A little bit different.
+@char r.surprised
+r: Different? You mean the tan?
+@char r.happy
+r: I spent the summer vacations in a Wizzard Ball training camp in the south of France.
+@stopBgm time:1
+@wait 1.0
+@Bgm alex_music
+a: Oh my! What’s that disagreeable smell?
+@char r.surprised
+a: When was the last time you had a bath, doggy?
+@char r.angry
+r: !!!
+@fx ShakeBackground
+@char r.mad pos:20,0
+r: Say that again!
+@char a.bragging pos:80,0
+Alexander!
+Our official bully has just made his first appearance.
+@char r.angry pos:20,0
+He has also grown taller over the summer.But unlike Ray, his paleness and slender figure remained the same.
+@char a.chatting pos:80,0
+a: Don’t contaminate my name, bookworm.
+As arrogant as always...
+@char r.mad pos:20,0
+r: Don’t talk to her like that or you will regret it...
+@char a.bragging pos:80,0
+a: How will I regret it? Enlighten me, please.
+@fx ShakeCharacter r a
+You two! Calm down already… We majors are supposed to be a reference for younger students.
+@char r.huh pos:20,0
+@char a.explain pos:80,0
+a: Hm…
+@char r.complain pos:20,0
+r: Do you want something or what?
+@char a.chatting pos:80,0
+a: Of course I do. I won’t talk to you two UNLESS I have to.
+@char r.angry pos:20,0
+r: Nchts…
+@char a.explain pos:80,0
+a: Listen bookworm.
+a: As expected, I’ve been chosen as a perfect representing the great House of Corvus this year.
+@char a.chatting pos:80,0
+a: I must also add, that against all odds, it seems that you're the one representing House of Phoenix . Am I mistaken?
+@char r.surprised pos:20,0
+@fx ShakeBackground
+r: What? Did you get selected??
+Oh, that... Yeah.
+@char r.happy pos:20,0
+r: Congratulations! I didn’t know…
+@char a.mad pos:80,0
+@fx ShakeBackground
+a: Silence peasant!
+@char r.mad pos:20,0
+r: You are playing with fire chick-head...
+@char a.explain pos:80,0
+a: Well, whatever. I need to talk to your friend.
+@char r.complain pos:20,0
+r: What are you waiting for? Go ahead.
+@char a.bragging pos:80,0
+a: In private. Perfect matters as you may assume...
+@char r.angry pos:20,0
+r: Okay. But If you do anything weird to her, I...
+It’s okay Ray! I’ll catch you at supper.
+@char r.worried pos:20,0
+r: ...
+@Wait 1.0
+@hide r
+@Wait 1.0
+@char a.explain pos:50,0
+a: Well, four eyes…
+@char a.psycho pos:50,0
+a: Let’s get going. It’s horribly noisy here.
+@Wait 1.0
+@hide a
+@ads
+@back screen_corridor.CircleReveal
+@Wait 1.0
+@char a.chatting pos:50,0
+a: By the way...
+a: Have you made up your mind yet?
+Pardon?
+@char a.explain pos:50,0
+a: The specializations. I hope you choose well....
+@char a.psycho pos:50,0
+a: And by well I mean Dark Arts.
+Well… I’m not quite sure yet.
+@char a.surprised pos:50,0
+@fx ShakeCharacter a
+a: Are you for real? With your grades… It’s an easy election, even for a Phoenix.
+There are other things I have to take into consideration, you know? It’s not just… grades.
+@char a.doubt pos:50,0
+a: Other things?
+@char a.explain pos:50,0
+a: Look, I’ll give you an advice, just for once. Don’t ruin your future over a "friendship".
+Was that what you wanted to discuss with me?/n Trying to brainwash me to choose your House specialty? So low of you.
+@char a.hum pos:50,0
+a: Whatever.
+@char a.explain pos:50,0
+a: There’s something else I need to talk about with you.
+a: As you know,we as perfects are given the privilege of having our own suits with private bathrooms.
+Yeah, So?...
+@char a.chatting pos:50,0
+a: What you may not know, is that the common areas are shared.
+a: We’ll be living together at astronomy tower dorm. Just wanted you to know.
+@fx ShakeBackground
+To… together??
+@char a.bragging pos:50,0
+a: Yeah, I know right? Someone of my status living with someone like you.
+Someone like me?
+@char a.psycho pos:50,0
+a: I'm only joking four eyes. Phoenix girls are sure boring.
+@char a.bragging pos:50,0
+a: Just remember. Don’t fall for me.
+Huh? Of course I won’t fall for someone like you.
+What’s up with him?
+@char a.chatting pos:50,0
+a: We should be going.
+a: It’s supper time. See you later.
+@Wait 1.0
+@hide a
+@Wait 1.0
+...
+What was that about? That narcissistic brat… I can’t believe I have to share dorms with that bully...
+I guess I’ll look for Ray at the dining hall.
+
+
+@stop
