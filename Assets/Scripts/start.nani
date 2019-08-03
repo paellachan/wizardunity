@@ -146,14 +146,14 @@ a: The specializations. I hope you choose well....
 a: And by well I mean Dark Arts.
 Well… I’m not quite sure yet.
 @char a.surprised pos:50,0
-@fx ShakeCharacter.a
+@fx ShakeBackground
 a: Are you for real? With your grades… It’s an easy election, even for a Phoenix.
 There are other things I have to take into consideration, you know? It’s not just… grades.
 @char a.doubt pos:50,0
 a: Other things?
 @char a.explain pos:50,0
 a: Look, I’ll give you an advice, just for once. Don’t ruin your future over a "friendship".
-Was that what you wanted to discuss with me?/n Trying to brainwash me to choose your House specialty? So low of you.
+Was that what you wanted to discuss with me? Trying to brainwash me to choose your House specialty? So low of you.
 @char a.hum pos:50,0
 a: Whatever.
 @char a.explain pos:50,0
@@ -183,5 +183,232 @@ a: It’s supper time. See you later.
 ...
 What was that about? That narcissistic brat… I can’t believe I have to share dorms with that bully...
 I guess I’ll look for Ray at the dining hall.
+@Wait 1.0
+@stopBgm time:1
+@wait 1.0
+@bgm funny_music
+@back screen_canteen.CircleReveal
+@wait 1.5
+It's pretty crowded...
+r: Hey! Over here!
+I see Ray's hand waving at me.
+Ray!
+@char r.joking pos:50,0
+@wait 1.0
+@char r.happy pos:50,0
+r: Gezzz! You’re late! I saved you a seat.
+Thanks! I say as I sit in front of him. I observe the many dishes surrounding him.
+@char r.smile pos:50,0
+Are you gonna eat all of that?
+@char r.hey pos:50,0
+r: Of course I will, I’m still growing.
+How much more are you planning to grow? I was surprised at how tall you got.
+@char r.smile pos:50,0
+r: Had I?
+@char r.surprised pos:50,0
+r: Hey! Aren’t you gonna eat? Those chicken wings are delicious.
+Oh, yeah…
+The previous talk had ruined my appetite completely.
+@char r.serious pos:50,0
+r: By the way... What do he wanted?
+Well…
+I tell Ray the whole story as he keeps devouring his food.
+@char r.surprised pos:50,0
+@fx ShakeBackground
+r: What? Are you gonna sleep like... together???
+Shhh! Low your voice... Of course we won’t!
+The dormitories are separated, but the common area is shared. We even have our own bathrooms!
+@char r.huh pos:50,0
+r: A private bathroom...Wahh… I’m so jealous.
+Don’t forget I will be with Alex... It doesn’t sound as good that way, does it?
+@char r.hey pos:50,0
+r: Ugh...
+@char r.serious pos:50,0
+r: Look... I don’t want to scare your or something. But beware of him.
+I know… I also listened the rumors about his family. I wonder If they are true…
+Anyway, let’s quit talking about that douche. Have you decided what to choose?
+@char r.smile pos:50,0
+r: Of course I have! In my case it’s easy-peasy: Healing magic. Dark arts are way too difficult.
+Are you choosing out of laziness? Really?
+@char r.hey pos:50,0
+r: It’s not laziness. I want to focus on my Wizard Ball practices… I cannot spend hours and hours studying if I want to become a pro.
+@char r.complain pos:50,0
+r: It pisses me off that everyone thinks Dark Arts are the shit? There are many interesting branches on healing magic.
+@char r.mad pos:50,0
+r: The new prime minister was a Healer, you know?
+Maybe you are right...
+@char r.joking pos:50,0
+r: Do you know what you’ll choose?
+Not yet…
+@char r.surprised pos:50,0
+r: Really? We have to give our final response tomorrow!
+ I know right??? I should have decided it already…
+@char r.okay pos:50,0
+r: Don’t worry. Just remember to trust your instinct! You’ll choose well. Afterall, you are a perfect.
+C’mon…
+@char r.surprised pos:50,0
+r: Woah! It's gotten so late!
+Yeah, I think we should head to the dorms.
+It’s so weird not to have you coming with me.
+@char r.shy pos:50,0
+r: It is…
+@char r.huh pos:50,0
+r: Man growing up is so depressing!
+Don't say that!
+@char r.smile pos:50,0
+r: Well...
+r: See you tomorrow!
+@Wait 1.0
+@hide r
+@stopBgm time:1
+@wait 1.0
+...
+@ads
+@bgm relaxed_music
+@back screen_corridor.CircleReveal
+@wait 1.5
+I head towards the dormitories in silence. It does feel lonely without Ray…
+After walking through the dark corridors, I finally get to the astronomy tower.
+I stand before the door, feeling nervous about what might be happening inside.
+I open the door and…
+@wait 1.0
+@fx ShakeBackground
+@back screen_dormcommon.CircleReveal
+There’s no one at sight. Alex isn’t here.
+@wait 1.5
+Phew… I feel more relaxed now.
+Such a cozy space! I think as I sit in a comfortable sofa.
+Wah.. I could totally fall asleep here.
+I should probably take a shower and go get some rest.
+I stand up looking for the famous private bathroom. It feels like such a luxury after having to share it for the past 5 years.
+@wait 1.0
+@back screen_door.CircleReveal
+There’s a door over there. Could it be there?
+I slowly open the door...
+@stopBgm time:1
+@wait 1.0
+@bgm alex_music
+@back CG/image_door.CircleReveal
+@fx ShakeBackground
+@unlock CG/image_door
+...
+...
+...
+@fx ShakeBackground
+@sfx audioscreamwoman
+Whaaahh!!!
+@back screen_door
+I quickly close the door again, stepping back.
+a: What the hell were you doing in my bathroom, bookworm??!!
+Alex shouts at me from the other side.
+I.. I’m sorry I…
+a: Are you that desperate to taste this body?
+@fx ShakeBackground
+It was just a misunderstood!
+a: Don’t be ashamed…
+a: It’s natural to feel attracted to me. Come in, water’s still warm.
+@fx ShakeBackground
+You wish!
+I already said I’m sorry, okay? Quit it already.
+a: Then go back to your room. I don’t want to spend the whole night here.
+I run away without saying anything. Feeling embarrassed and mad at the same time.
+@wait 1.0
+@stopBgm time:1
+@back screen_dormcommon.CircleReveal
+@bgm relaxed_music
+@wait 1.0
+What was that?? God, I'm so embarrassed...
+I sit on the couch with my face burning hot. I want to die right now…
+I can’t erase the image of Alex’s naked body of my mind.
+I close my eyes as I try to calm my mind down…
+After some minutes, I’m finally able to relax.
+My body is getting numb from all the fatigue of the day. My mind starts to run wild… As I… Fall… asleep…
+@back screen_black.Ripple params:45,,1.1
+@wait 2.0
+zzzz….zzz…..zz…
+a: Hey!
+@fx ShakeBackground
+a: Hey I said!
+a: Commoners can really fall asleep in any place...
+a: You gonna me late, you know?
+Huh?...
+a: Hello?
+Alex?
+Am I dreaming? What are you…
+@back screen_dormcommon.CircleReveal
+@Bgm alex_music
+@fx ShakeBackground
+@char a.chatting
+
+a: What am I doing here? You better ask yourself that question.
+I.. I totally passed out on the coach!! What time is it??
+@char a.worried
+a: 7:56am.
+@char a.explain
+a: The ceremony will start in 4 minutes, so hurry up.
+Wait...
+@fx ShakeBackground
+What???!!!
+@char a.worried
+a: I will be going now. And remember...
+@char a.normal
+a: Choose well.
+@wait 1.0
+@hide a
+I need to go.
+@fx ShakeBackground
+NOW.
+@wait 1.0
+@back screen_canteen.CircleReveal
+@stopBgm time:1
+@wait 1.0
+@Bgm funny_music
+I arrive to the dining hall completely out of breath. I look into the crowd.... everyone is already there.
+I sneak in silence, trying to reach the table were Ray and I usually sit.
+r: What happened?? You are late!!!
+@char r.happy
+@fx ShakeBackground
+Don’t talk so loudly!
+I’ll explain you later…
+@char r.joking
+r: What happened to your hair? Had you just woke up?
+Oh, shut up!
+@char r.smile
+r: Hahahaha.
+@wait 1.0
+Anyway… Did you already...?
+@char r.normal
+r: Yup.
+Healing magic then?
+@char r.happy
+r: Yup.
+I wish I could have it as clear as him...
+@char r.okay
+r: What about you, though? Could you make up your mind?
+Well… I still...
+@fx ShakeBackground
+flash |
+I hear someone calling my name outloud.
+@char r.surprised
+r: Well, seems you’ll have to decide it now.
+@char r.okay
+r: Good luck!
+
+@wait 1.0
+@hide r
+Thanks...
+Gosh, I'm so nervous.
+I walk towards a bigger table where all the teachers are. The director, Ginevra Black, is waiting for me.
+@char m.normal
+I look back for a moment. Ray is happily waving at me, while Alexander is also staring at me, with arms crossed and a serious look on his face.
+m: Well...It’s time for you to choose.
+I stare into a huge floating book already opened.
+Dark arts are powerful but they also mean to probably get to see Alex more often…
+Yet healing magic has also it’s own charm and I’ll mean to keep closer to Ray…
+What should I choose?
+@choice "Dark Arts" goto:AnotherScript
+@choice "Healing Magic" goto:AnotherScript.LabelName
+
+
 
 @stop
