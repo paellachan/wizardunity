@@ -7,7 +7,7 @@
     ],
     "values": [
         "{\n    \"SelectedLocale\": \"en\"\n}",
-        "{\n    \"PrintSpeed\": 0.5\n}",
+        "{\n    \"PrintSpeed\": 0.47382089495658877\n}",
         "{\n    \"MasterVolume\": 1.0,\n    \"BgmVolume\": 1.0,\n    \"SfxVolume\": 1.0,\n    \"VoiceVolume\": 1.0\n}",
         "{\n    \"SkipMode\": 0\n}"
     ]
