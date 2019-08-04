@@ -414,15 +414,15 @@ r: Good luck!
 Thanks...
 Gosh, I'm so nervous.
 I walk towards a bigger table where all the teachers usually sit. The director, Ginevra Black, is waiting for me.
-@char m.normal
+@char g.normal
 I look back for a moment. Ray is happily waving at me, while Alexander is also staring at me, with arms crossed and a serious look on his face.
-m: Good morning. It’s time for you to choose.
+g: Good morning. It’s time for you to choose.
 I stare into a huge floating book already opened.
 Dark arts are a powerful discipline but choosing it also mean getting to see Alex more often…
 Healing magic has many interesting branches. Is not as 'badass' looking as Dark Arts, but many important wizards where versed in this discipline.
 And... I'll keep close to Ray...
 What should I choose?
-@choice "Dark Arts" goto:alex
+@choice "Dark Arts" goto:alex.alexch1
 @choice "Healing Magic" goto:ray
 
 @stop

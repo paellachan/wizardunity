@@ -1,3 +1,235 @@
-dfdsfsdf
-sdfsdfd
+#alexch1
+@ads
+@back screen_canteen.CircleReveal
+@stopBgm time:1
+@wait 1.0
+@Bgm funny_music
+@char g.normal
+I have chosen Dark Arts, a very powerful yet complex discipline.
+Let's sign the book.
+@input name summary:"Write your name to sign the book."
+@stop
+It's done...
+@char g.worried
+Is everything okay, {name}?
+@char g.circumstance
+g: I’m afraid other students are waiting to sign the book...
+@fx ShakeBackground
+I...I'm sorry!
+I spaced out again...
+@char g.normal
+It's normal to get excited. Now, please go back to your seat.
+@hide g
+@wait 1.0
+As I go back to my table I realize all the majors are sitting now by speciality, what means... I should be sitting with Alexander instead of Ray…
+I gaze into Ray’s direction, giving him an ‘I’m sorry, talk to you later’ look. He responds with a sad smile and a thumbs up.
+As I approach Dark Arts’s table I discover Alex bragging with some other students.
+Guess he’s back to his old self...
+@stopBgm time:1
+@wait 1.0
+@Bgm alex_music
+@char a.happy
+a: Look who’s here...
+...
+cs: Another bird in the cage!
+@char a.bragging
+a: Ronny you owe me 20 bucks.
+cs: Oh! C'mon…
+@char a.happy
+...
+What’s this all about?...
+@char a.psycho
+I look around to notice I’m the only Phoenix there. Did I... get fooled by him?
+@fx ShakeBackground
+Alex, you…
+@char a.happy
+a: Yes?
+@char a.surprised
+a: Oh! Don't you tell me…
+@char a.psycho
+a: That you thought we were friends or something.
+@char a.bragging
+a: Phoenix girls are sure naive…
+...
+I can’t  help it and run away, rushing back to the dormitories. How could he be that cruel?
+@char a.surprised
+a: ...
+@hide a
+@wait 1.0
+@back screen_dormcommon
+@stopBgm time:1
+@wait 1.0
+@Bgm relaxed_music
+...
+Was he making fun of me all this time? Once you sign the book you can never go back.
+I wait for some minutes secretly hoping he’ll come and apologize.
+But he didn’t came.
+@fx ShakeBackground
+Stupid Alex! How could I think it would be a good idea to trust such a brat!
+I sit down, plotting my revenge. You’ll never dare to humiliate me again.
+…
+Classes will start soon, I should better get going…
+Hm… My yearly schedule has been updated automatically after I signed the book.
+@wait 2.0
+@back screen_corridor.CircleReveal
+Let’s see… Seems that my first class will be spells.
+I think the classroom was this way…
+@fx ShakeBackground
+Wahh!
+I fell on the floor.
+¡Hey!
+@stopBgm time:1
+@Bgm funny_music
+@char r.surprised
+fadein | 1 | 2
+r: Are you okay?
+@fx ShakeBackground
+R...Ray!
+@char r.worried
+r: ...
+Is he mad at me?...
+@char r.hey
+r: What a coincidence… You…  left the ceremony early.
+Yeah...
+@char r.worried
+He looks at me with concern.
+@char r.worried
+Is everything okay?
+Well…
+I tell him the whole story.
+@char r.angry
+r: I knew it!
+@fx ShakeBackground
+r: This sneaky chick-head…
+Listen.
+@char r.surprised
+I want you to tell me EVERYTHING.
+@char r.worried
+r: What are you talking about?
+The rumors.
+Tell me all you know about it.
+@char r.worried
+r: What are you plotting?
+@fx ShakeBackground
+Say it already!
+@char r.surprised
+r: Okay...
+@char r.serious
+r: You know who his father is, right?
+Yeah, he's always bragging about him.
+r: Back in the day he was a supporter of the Dark front.
+But everyone knows that, right?
+I’ve even heard him taking pride on this.
+r: Rumors says there’s a renaissance of the movement and Alex’s seems to be part of it.
+This accusation is very serious… Do you have proofs?
+@fx ShakeBackground
+r: Hey!
+r: I’m just telling you what I’ve heard, not saying it’s true…
+r: You're scaring me, you know?
+I'm sorry, I didn't mean to...
+r: Anyway, I’ll be late for botanical… See you later, okay?
+See you later.
+@hide r
+@wait 1.0
+@stopBgm time:1
+@wait 1.0
+@Bgm relaxed_music
+I stare at Ray’s back walking away and disappearing among the students crowding the corridor.
+I don’t really feel like seeing Alex and his cronies right now...
+I aimlessly head to the classroom.
+@wait 1.0
+@back screen_classroom.CircleReveal
+@stopBgm time:1
+@wait 1.0
+@Bgm alex_music
+@wait 1.0
+Excuse me...
+t:It’s Okay Miss.Weiss, please take a sit.
+Huh?...
+I look around in despair, noticing the only available sit is next to Alex.
+t:Miss.Weiss could you please take a sit already?
+Yes!
+I sit next to Alex, trying to avoid looking at him.
+@fx ShakeBackground
+a:Tch...
+@fx ShakeBackground
+a: Tch...
+@fx ShakeBackground
+What-do-you-want? I madly whisper.
+a:You were late…
+@fx ShakeBackground
+Like you care!
+flash |
+t:Miss.{name}! Silence please!
+Sorry...
+Damn Alex…
+The rest of the class passed without any other incident.
+The bell finally rings and I rushedly stand up, trying to escape the classroom before getting caught by him.
+a: Hey!
+@wait 1.0
+@back screen_corridor.CircleReveal
+a:...
+@fx ShakeBackground
+a: Hey I said!
+I feel a hand grabbing my arm firmly.
+I turn my head scared.
+@back CG/image_route_alex.CircleReveal
+@unlock CG/image_route_alex
+@wait 3.0
+a: Where are you going?
+Pardon?
+I can’t believe he has the nerve to talk to me after what happened at the ceremony.
+a: Are you mad?
+@fx ShakeBackground
+Of course I’m mad. Do you think I’m stupid? Let me go!
+a: Wait... I need to explain something to you.
+@fx ShakeBackground
+Let me go I said! You’re hurting me.
+@back screen_corridor
+@wait 2.0
+a: Hm…
+He finally released me.
+a: Do you have a moment?
+@choice "Listen to what he wants to say." goto:.alex1a
+@choice "Healing Magic" goto:alex1b
+
+#alex1a
+I hope I don’t regret this.
+About this morning…
+I..
+nchts
+He’s struggling to say the words.
+I’m sorry okay?
+Huh?
+What did you say? I couldn’t hear you.
+I said I’m sorry!
+@choice "Accept his apologies." goto:.alex2a
+@choice "Leave." goto:.alex2a
+    #alex2a
+    Why you said those horrible things this morning then?
+    I have a reputation to keep, you know?
+    A reputation?
+    You know how my father is… I cannot get overfriendly with phoenix students overnight.
+    It will look suspicious.
+    What does he mean? Was he trying to… protect me?
+    Okay… But don’t talk to me like that again.
+    …
+    Don’t ask for the impossible.
+    He leaves the conversation with a subtle smile in his lips.
+    I have the feeling there’s things I yet don’t understand about him.
+
+    #alex2b
+    You didn’t look sorry a couple of hours ago
+    Oh, C’mon.
+    Okay, forget about it.
+    He leaves making and angry face.
+    Maybe I shouldn’t have said that.
+
+#alex1b
+You got some nerve there, boy.
+What?
+You do really think phoenix girls are stupid, don’t you?
+Leave me alone already!
+I walk away heading to the next class.
+
 @stop
