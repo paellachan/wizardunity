@@ -6,7 +6,7 @@
     ],
     "values": [
         "{\n    \"keys\": [],\n    \"values\": []\n}",
-        "{\n    \"PlayedScriptRegister\": {\n        \"playedScripts\": [\n            {\n                \"ScriptName\": \"start\",\n                \"PlayedIndexes\": [\n                    {\n                        \"startIndex\": 0,\n                        \"endIndex\": 289\n                    }\n                ]\n            }\n        ]\n    }\n}",
+        "{\n    \"PlayedScriptRegister\": {\n        \"playedScripts\": [\n            {\n                \"ScriptName\": \"start\",\n                \"PlayedIndexes\": [\n                    {\n                        \"startIndex\": 0,\n                        \"endIndex\": 290\n                    }\n                ]\n            }\n        ]\n    }\n}",
         "{\n    \"UnlockablesMap\": {\n        \"keys\": [\n            \"CG/image_hug\",\n            \"CG/image_door\"\n        ],\n        \"values\": [\n            true,\n            true\n        ]\n    }\n}"
     ]
 }

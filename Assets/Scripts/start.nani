@@ -4,16 +4,17 @@
 @printer Wide
 @wait 1.5
 
-¨Such a cold September...¨ I think to myself as I reach the entrance of the castle. I feel as overwhelmed as the first time I came here.
-The castle was outstandingly beautiful. Thousands of enchanted lamps floated around illuminating the exterior.
+¨Such a cold September...¨ I think to myself as I walk towards the entrance of the castle.
+I feel as overwhelmed as the first time I came here.
+The castle was outstandingly beautiful. Thousands of enchanted lamps floated illuminating the exterior.
 Loads of younger students are arriving. It makes me feel nostalgic.
 I can't believe 5 years ago I was also one of them.
-Suddenly I bump into someone.
+I suddenly bump into someone.
 @sfx audiobump
 @fx ShakeBackground
 r: Oi!
 @wait 0.5
-I look up and see a very tall, tanned and muscular young man with pitch black hair.
+I look up to see a very tall, tanned and muscular young man with jet black hair.
 r: Why didn’t you tell me you were already here?!
 @stopBgm time:1
 @wait 1.0
@@ -30,8 +31,8 @@ r: Cm’on! Aren’t you gonna give me a proper hug?
 @wait 1.0
 @back CG/image_hug.DropFade time:1.5
 @wait 1.0
-Before being able to say a thing Ray comes closer and put his manly arms around my waist, suddenly lifting me.
-I wonder when did he become that strong?
+Before being able to say a thing, Ray comes closer and put his manly arms around my waist lifting me by surprise.
+When did he become that strong?
 @wait 1.0
 @back screen_exterior_night.DropFade time:1.5
 @unlock CG/image_hug
@@ -47,9 +48,10 @@ And also… You were with Florence and...
 r: Oh, that…
 @char r.worried
 r: Actually we broke up just after summer break started…
-I’m sorry… I lied. (Florence was an insufferable bitch.)Not to say she’s one of the Corvus…
+I’m sorry… I lied.
+(Florence was an insufferable bitch.Not to say she’s one of the Corvus…)
 @char r.okay
-How are you feeling? Gosh... After all the things we went through those 5 years I wasn’t there when you needed me.
+How are you feeling? Merlin... After all the things we went through those 5 years I wasn’t there when you needed me.
 @char r.shy
 r: Now I am the one who feels bad!
 @char r.hey
@@ -79,7 +81,7 @@ r: Say that again!
 Alexander!
 Our official bully has just made his first appearance.
 @char r.angry pos:20,0
-He has also grown taller over the summer.But unlike Ray, his paleness and slender figure remained the same.
+He has also grown taller over the summer. But unlike Ray, his paleness and slender figure remained the same.
 @char a.chatting pos:80,0
 a: Don’t contaminate my name, bookworm.
 As arrogant as always...
@@ -94,33 +96,35 @@ a: Hm…
 @char r.complain pos:20,0
 r: Do you want something or what?
 @char a.chatting pos:80,0
-a: Of course I do. I won’t talk to you two UNLESS I have to.
+a: Of course I do.
+@char a.bragging pos:80,0
+I won’t talk to you two UNLESS I have to.
 @char r.angry pos:20,0
 r: Nchts…
 @char a.explain pos:80,0
 a: Listen bookworm.
 a: As expected, I’ve been chosen as a perfect representing the great House of Corvus this year.
 @char a.chatting pos:80,0
-a: I must also add, that against all odds, it seems that you're the one representing House of Phoenix . Am I mistaken?
+a: And against all odds... seems that you're the one representing House of Phoenix. Am I mistaken?
 @char r.surprised pos:20,0
 @fx ShakeBackground
 r: What? Did you get selected??
-Oh, that... Yeah.
+Oh... Yeah.
 @char r.happy pos:20,0
 r: Congratulations! I didn’t know…
 @char a.mad pos:80,0
 @fx ShakeBackground
 a: Silence peasant!
 @char r.mad pos:20,0
-r: You are playing with fire chick-head...
+r: You're playing with fire chick-head...
 @char a.explain pos:80,0
-a: Well, whatever. I need to talk to your friend.
+a: Sure. Anyway, I need to talk to your friend.
 @char r.complain pos:20,0
 r: What are you waiting for? Go ahead.
 @char a.bragging pos:80,0
 a: In private. Perfect matters as you may assume...
 @char r.angry pos:20,0
-r: Okay. But If you do anything weird to her, I...
+r: Okay. But if you do anything weird to her, I...
 It’s okay Ray! I’ll catch you at supper.
 @char r.worried pos:20,0
 r: ...
@@ -138,7 +142,7 @@ a: Let’s get going. It’s horribly noisy here.
 @Wait 1.0
 @char a.chatting pos:50,0
 a: By the way...
-a: Have you made up your mind yet?
+a: Have you made up your mind?
 Pardon?
 @char a.explain pos:50,0
 a: The specializations. I hope you choose well....
@@ -147,22 +151,24 @@ a: And by well I mean Dark Arts.
 Well… I’m not quite sure yet.
 @char a.surprised pos:50,0
 @fx ShakeBackground
-a: Are you for real? With your grades… It’s an easy election, even for a Phoenix.
+a: Are you for real? With your grades… It’s an easy choice, even for a phoenix.
 There are other things I have to take into consideration, you know? It’s not just… grades.
 @char a.doubt pos:50,0
 a: Other things?
 @char a.explain pos:50,0
-a: Look, I’ll give you an advice, just for once. Don’t ruin your future over a "friendship".
-Was that what you wanted to discuss with me? Trying to brainwash me to choose your House specialty? So low of you.
+a: Look, I’ll give you an advice, just for once.
+a: Don’t ruin your future over a "friendship".
+Was that what you wanted to discuss with me?
+Trying to brainwash me to choose your house specialty? So low, Alex.
 @char a.hum pos:50,0
-a: Whatever.
+a: Think whatever you want.
 @char a.explain pos:50,0
-a: There’s something else I need to talk about with you.
-a: As you know,we as perfects are given the privilege of having our own suits with private bathrooms.
+a: There’s something else I need to discuss with you.
+a: As you know, we as perfects are given the privilege of having our own suits with private bathrooms.
 Yeah, So?...
 @char a.chatting pos:50,0
-a: What you may not know, is that the common areas are shared.
-a: We’ll be living together at astronomy tower dorm. Just wanted you to know.
+a: What you probably don't know is that the common areas are shared.
+a: We’ll be living together at Astronomy tower's dorm. Just wanted you to know.
 @fx ShakeBackground
 To… together??
 @char a.bragging pos:50,0
@@ -171,18 +177,19 @@ Someone like me?
 @char a.psycho pos:50,0
 a: I'm only joking four eyes. Phoenix girls are sure boring.
 @char a.bragging pos:50,0
-a: Just remember. Don’t fall for me.
+a: And...
+a: Just as a friendly reminder: don’t fall for me.
 Huh? Of course I won’t fall for someone like you.
 What’s up with him?
 @char a.chatting pos:50,0
-a: We should be going.
-a: It’s supper time. See you later.
+a: It’s almost supper time. We should head to the dinning hall.
+a: See you later.
 @Wait 1.0
 @hide a
 @Wait 1.0
 ...
-What was that about? That narcissistic brat… I can’t believe I have to share dorms with that bully...
-I guess I’ll look for Ray at the dining hall.
+What was all that about? That narcissistic brat… I can’t believe I have to share dorms with that bully...
+I’ll go look for Ray.
 @Wait 1.0
 @stopBgm time:1
 @wait 1.0
@@ -191,27 +198,31 @@ I guess I’ll look for Ray at the dining hall.
 @wait 1.5
 It's pretty crowded...
 r: Hey! Over here!
-I see Ray's hand waving at me.
+I can see Ray's hand waving at me.
 Ray!
 @char r.joking pos:50,0
 @wait 1.0
 @char r.happy pos:50,0
 r: Gezzz! You’re late! I saved you a seat.
-Thanks! I say as I sit in front of him. I observe the many dishes surrounding him.
+Thanks! I say while taking a seat in front of him.
+I'm surprised to see the amount of dishes surrounding him.
 @char r.smile pos:50,0
 Are you gonna eat all of that?
 @char r.hey pos:50,0
-r: Of course I will, I’m still growing.
+r: Of course, I’m still growing.
 How much more are you planning to grow? I was surprised at how tall you got.
 @char r.smile pos:50,0
-r: Had I?
+r: Did I?
 @char r.surprised pos:50,0
-r: Hey! Aren’t you gonna eat? Those chicken wings are delicious.
-Oh, yeah…
+r: By the way, aren’t you gonna eat? Those chicken wings are delicious.
+I laugh at him and shyly pick one.
 The previous talk had ruined my appetite completely.
 @char r.serious pos:50,0
-r: By the way... What do he wanted?
+r: Anyways...
+Ray looks at me with a serious face trying to find the right words.
+r: What did he want?
 Well…
+(So it was that...)
 I tell Ray the whole story as he keeps devouring his food.
 @char r.surprised pos:50,0
 @fx ShakeBackground
@@ -220,40 +231,41 @@ Shhh! Low your voice... Of course we won’t!
 The dormitories are separated, but the common area is shared. We even have our own bathrooms!
 @char r.huh pos:50,0
 r: A private bathroom...Wahh… I’m so jealous.
-Don’t forget I will be with Alex... It doesn’t sound as good that way, does it?
+Don’t forget I will be living with Alex... This doesn’t sound as good, does it?
 @char r.hey pos:50,0
 r: Ugh...
 @char r.serious pos:50,0
-r: Look... I don’t want to scare your or something. But beware of him.
-I know… I also listened the rumors about his family. I wonder If they are true…
-Anyway, let’s quit talking about that douche. Have you decided what to choose?
+r: Look... I don’t want to scare your or something. But...
+r: Beware of him. I've heard a lot of crazy rumors about him lately.
+I know… I also listened about them. Wonder if they are true, though…
+But... C'mon let’s change topics already! Have you decided what to choose?
 @char r.smile pos:50,0
-r: Of course I have! In my case it’s easy-peasy: Healing magic. Dark arts are way too difficult.
+r: Of course! In my case it’s easy-peasy: Healing magic. Dark arts are way too difficult.
 Are you choosing out of laziness? Really?
 @char r.hey pos:50,0
-r: It’s not laziness. I want to focus on my Wizard Ball practices… I cannot spend hours and hours studying if I want to become a pro.
+r: It’s not laziness. I want to focus on my Wizard Ball practices… I cannot invest hours and hours studying if I want to become a pro.
 @char r.complain pos:50,0
-r: It pisses me off that everyone thinks Dark Arts are the shit? There are many interesting branches on healing magic.
+r: It pisses me off that everyone think Dark Arts are the shit? There are many interesting branches on healing magic.
 @char r.mad pos:50,0
 r: The new prime minister was a Healer, you know?
 Maybe you are right...
 @char r.joking pos:50,0
-r: Do you know what you’ll choose?
-Not yet…
+r: What about you?
+I'm not sure yet…
 @char r.surprised pos:50,0
-r: Really? We have to give our final response tomorrow!
- I know right??? I should have decided it already…
+r: Really?? We have to give our final response tomorrow!
+I know right??? I should have decided it already…
 @char r.okay pos:50,0
-r: Don’t worry. Just remember to trust your instinct! You’ll choose well. Afterall, you are a perfect.
-C’mon…
+r: Don’t worry. Just remember to trust your instinct.a You’ll choose well. After all, you are a perfect, right?.
+Oh c’mon…
 @char r.surprised pos:50,0
 r: Woah! It's gotten so late!
-Yeah, I think we should head to the dorms.
+Yeah, we should head to the dorms.
 It’s so weird not to have you coming with me.
 @char r.shy pos:50,0
-r: It is…
+r: …
 @char r.huh pos:50,0
-r: Man growing up is so depressing!
+r: Man, growing up is so depressing!
 Don't say that!
 @char r.smile pos:50,0
 r: Well...
@@ -267,9 +279,9 @@ r: See you tomorrow!
 @bgm relaxed_music
 @back screen_corridor.CircleReveal
 @wait 1.5
-I head towards the dormitories in silence. It does feel lonely without Ray…
-After walking through the dark corridors, I finally get to the astronomy tower.
-I stand before the door, feeling nervous about what might be happening inside.
+I head towards the dormitories in silence. It feels lonely without Ray…
+After walking through the dark corridors, I finally get to the Astronomy tower.
+I stand in front of the door, feeling nervous about what I might found on the other side.
 I open the door and…
 @wait 1.0
 @fx ShakeBackground
@@ -277,10 +289,10 @@ I open the door and…
 There’s no one at sight. Alex isn’t here.
 @wait 1.5
 Phew… I feel more relaxed now.
-Such a cozy space! I think as I sit in a comfortable sofa.
-Wah.. I could totally fall asleep here.
-I should probably take a shower and go get some rest.
-I stand up looking for the famous private bathroom. It feels like such a luxury after having to share it for the past 5 years.
+Such a cozy space! I think as I sit in the comfortable coach.
+I could totally fall asleep here.
+I should take a shower before I pass out.
+I stand up and start looking for the famous private bathroom. Having one feels like such a luxury after having to share it for the past 5 years.
 @wait 1.0
 @back screen_door.CircleReveal
 There’s a door over there. Could it be there?
@@ -298,44 +310,48 @@ I slowly open the door...
 @sfx audioscreamwoman
 Whaaahh!!!
 @back screen_door
-I quickly close the door again, stepping back.
+I quickly close the door, stepping back.
 a: What the hell were you doing in my bathroom, bookworm??!!
 Alex shouts at me from the other side.
 I.. I’m sorry I…
 a: Are you that desperate to taste this body?
 @fx ShakeBackground
-It was just a misunderstood!
+I...It was just a misunderstood!
 a: Don’t be ashamed…
 a: It’s natural to feel attracted to me. Come in, water’s still warm.
 @fx ShakeBackground
 You wish!
 I already said I’m sorry, okay? Quit it already.
-a: Then go back to your room. I don’t want to spend the whole night here.
-I run away without saying anything. Feeling embarrassed and mad at the same time.
+a: Then move and let me open.
+a: I don’t want to spend the whole night here.
+Teleport yourself, you freak!
+a: Wh..What??
+I run away without replying to him, feeling embarrassed and mad at the same time.
 @wait 1.0
 @stopBgm time:1
 @back screen_dormcommon.CircleReveal
 @bgm relaxed_music
 @wait 1.0
-What was that?? God, I'm so embarrassed...
-I sit on the couch with my face burning hot. I want to die right now…
+What was that??
+I sit on the coach, feeling my face burning. I want to die right now…
 I can’t erase the image of Alex’s naked body of my mind.
-I close my eyes as I try to calm my mind down…
-After some minutes, I’m finally able to relax.
+I close my eyes trying to calm my mind down…
+After some minutes I’m finally able to relax.
 My body is getting numb from all the fatigue of the day. My mind starts to run wild… As I… Fall… asleep…
-@back screen_black.Ripple params:45,,1.1
+@back screen_black.Ripple params:45,2,1.1
 @wait 2.0
 zzzz….zzz…..zz…
 a: Hey!
 @fx ShakeBackground
 a: Hey I said!
-a: Commoners can really fall asleep in any place...
+a: Commoners can really fall asleep anywhere.
 a: You gonna me late, you know?
 Huh?...
 a: Hello?
 Alex?
 Am I dreaming? What are you…
 @back screen_dormcommon.CircleReveal
+@stopBgm time:1
 @Bgm alex_music
 @fx ShakeBackground
 @char a.chatting
@@ -363,7 +379,7 @@ NOW.
 @stopBgm time:1
 @wait 1.0
 @Bgm funny_music
-I arrive to the dining hall completely out of breath. I look into the crowd.... everyone is already there.
+I arrive at the dining hall completely out of breath. I look into the crowd.... everyone is already there.
 I sneak in silence, trying to reach the table were Ray and I usually sit.
 r: What happened?? You are late!!!
 @char r.happy
@@ -382,13 +398,12 @@ r: Yup.
 Healing magic then?
 @char r.happy
 r: Yup.
-I wish I could have it as clear as him...
+I wish I could have it as clear as Ray...
 @char r.okay
 r: What about you, though? Could you make up your mind?
 Well… I still...
 @fx ShakeBackground
-flash |
-I hear someone calling my name outloud.
+I hear someone calling my name out laud.
 @char r.surprised
 r: Well, seems you’ll have to decide it now.
 @char r.okay
@@ -398,17 +413,16 @@ r: Good luck!
 @hide r
 Thanks...
 Gosh, I'm so nervous.
-I walk towards a bigger table where all the teachers are. The director, Ginevra Black, is waiting for me.
+I walk towards a bigger table where all the teachers usually sit. The director, Ginevra Black, is waiting for me.
 @char m.normal
 I look back for a moment. Ray is happily waving at me, while Alexander is also staring at me, with arms crossed and a serious look on his face.
-m: Well...It’s time for you to choose.
+m: Good morning. It’s time for you to choose.
 I stare into a huge floating book already opened.
-Dark arts are powerful but they also mean to probably get to see Alex more often…
-Yet healing magic has also it’s own charm and I’ll mean to keep closer to Ray…
+Dark arts are a powerful discipline but choosing it also mean getting to see Alex more often…
+Healing magic has many interesting branches. Is not as 'badass' looking as Dark Arts, but many important wizards where versed in this discipline.
+And... I'll keep close to Ray...
 What should I choose?
-@choice "Dark Arts" goto:AnotherScript
-@choice "Healing Magic" goto:AnotherScript.LabelName
-
-
+@choice "Dark Arts" goto:alex
+@choice "Healing Magic" goto:ray
 
 @stop
