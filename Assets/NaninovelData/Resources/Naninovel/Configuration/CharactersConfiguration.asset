@@ -36,7 +36,9 @@ MonoBehaviour:
     ids:
     - r
     - a
-    - m
+    - g
+    - cs
+    - t
     metas:
     - Implementation: Naninovel.SpriteCharacter
       LoaderConfiguration:
@@ -78,10 +80,42 @@ MonoBehaviour:
       Pivot: {x: 0.5, y: 0}
       PixelsPerUnit: 100
       BakedLookDirection: 1
-      DisplayName: Director Minerva Black
+      DisplayName: Director Ginevra Black
       UseCharacterColor: 1
       NameColor: {r: 0.3254717, g: 1, b: 0.67093074, a: 1}
       MessageColor: {r: 0.8349056, g: 1, b: 0.90364957, a: 1}
+      HighlightWhenSpeaking: 0
+      SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
+      NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      MessageSound: 
+    - Implementation: Naninovel.SpriteCharacter
+      LoaderConfiguration:
+        PathPrefix: Characters
+        ProviderTypes: 0000000001000000
+      guid: 4818d7dd-0e83-44a3-b5c3-cbbf4522a470
+      Pivot: {x: 0.5, y: 0}
+      PixelsPerUnit: 100
+      BakedLookDirection: 1
+      DisplayName: Corvus student
+      UseCharacterColor: 0
+      NameColor: {r: 1, g: 1, b: 1, a: 1}
+      MessageColor: {r: 1, g: 1, b: 1, a: 1}
+      HighlightWhenSpeaking: 0
+      SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
+      NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      MessageSound: 
+    - Implementation: Naninovel.SpriteCharacter
+      LoaderConfiguration:
+        PathPrefix: Characters
+        ProviderTypes: 0000000001000000
+      guid: 92ed015e-e2d2-4408-8778-cbedc6a65179
+      Pivot: {x: 0.5, y: 0}
+      PixelsPerUnit: 100
+      BakedLookDirection: 1
+      DisplayName: Professor
+      UseCharacterColor: 0
+      NameColor: {r: 1, g: 1, b: 1, a: 1}
+      MessageColor: {r: 1, g: 1, b: 1, a: 1}
       HighlightWhenSpeaking: 0
       SpeakingTint: {r: 1, g: 1, b: 1, a: 1}
       NotSpeakingTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}

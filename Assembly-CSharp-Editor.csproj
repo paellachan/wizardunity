@@ -107,6 +107,12 @@
      <Compile Include="Assets\Naninovel\ThirdParty\UnityCommon\Editor\ResourceProvider\EditorResourceLocator.cs" />
      <Compile Include="Assets\Naninovel\ThirdParty\UnityCommon\Editor\ResourceProvider\EditorResourceProvider.cs" />
      <Compile Include="Assets\Naninovel\ThirdParty\UnityCommon\Editor\SerializableMapPropertyDrawer.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Editor\DicedSpriteAtlasEditor.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Editor\DicedSpriteDragHandler.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Editor\DicedSpriteEditor.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Editor\DicedSpriteRendererEditor.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Editor\EditorUtilities.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Editor\FolderAssetHelper.cs" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>D:/wizard/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
  </Reference>

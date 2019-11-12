@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\JMO Assets\Cartoon FX\Scripts\CFX_AutoDestructShuriken.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Actor\ActorExtensions.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Actor\ActorManager.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Actor\ActorManagerConfiguration.cs" />
@@ -116,6 +117,7 @@
      <Compile Include="Assets\Naninovel\Runtime\Command\Actor\ModifyOrthoActor.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Command\AddChoice.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Command\ads.cs" />
+     <Compile Include="Assets\Naninovel\Runtime\Command\adsInit.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Command\Audio\PlayBgm.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Command\Audio\PlaySfx.cs" />
      <Compile Include="Assets\Naninovel\Runtime\Command\Audio\PlayVoice.cs" />
@@ -442,6 +444,13 @@
      <Compile Include="Assets\Naninovel\ThirdParty\UnityConsole\Runtime\CommandDatabase.cs" />
      <Compile Include="Assets\Naninovel\ThirdParty\UnityConsole\Runtime\ConsoleGUI.cs" />
      <Compile Include="Assets\Naninovel\ThirdParty\UnityConsole\Runtime\InputPreprocessor.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\Runtime\DicedSpriteCharacter.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\DicedSprite.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\DicedSpriteAtlas.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\DicedSpriteRenderer.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\DicedUnit.cs" />
+     <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\Utilities.cs" />
+     <None Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\LICENSE.txt" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\TransitionEffects.cginc" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\RevealableText.shader" />
      <None Include="Assets\Naninovel\Fonts\LICENSE.txt" />

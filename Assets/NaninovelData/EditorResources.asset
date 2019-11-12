@@ -76,9 +76,6 @@ MonoBehaviour:
     - Name: explain
       PathPrefix: Characters/a
       Guid: b96f1b8c3b3bde94ca7e78f2257d2f8d
-    - Name: happy
-      PathPrefix: Characters/a
-      Guid: 452837800cbe03742b726bebb70bf31d
     - Name: hum
       PathPrefix: Characters/a
       Guid: e931c8019e46bac4d847a1a06819f9a5
@@ -99,17 +96,20 @@ MonoBehaviour:
       Guid: bd93a8ac7e96d8442a2899a8724cc794
     - Name: happy
       PathPrefix: Characters/a
-      Guid: 92472609e3c17174aa33afa6be695cd6
+      Guid: 452837800cbe03742b726bebb70bf31d
+    - Name: shy
+      PathPrefix: Characters/a
+      Guid: bb0c5f5adef45374cbe4632d10805693
   - Id: Characters/f821f7ec-ec2a-4a4e-98b1-d3952f1c4a09
     Resources:
     - Name: circumstance
-      PathPrefix: Characters/m
+      PathPrefix: Characters/g
       Guid: a5c0680304c50d547891b8eb22f0a672
     - Name: normal
-      PathPrefix: Characters/m
+      PathPrefix: Characters/g
       Guid: 80382dfd8ccaa4a44b6c919b7235596b
     - Name: worried
-      PathPrefix: Characters/m
+      PathPrefix: Characters/g
       Guid: 483c0121231b75746903391d665aeb94
   - Id: Backgrounds/bc853f26-6eb5-4d43-b823-f870e31ccab4
     Resources:
@@ -146,11 +146,23 @@ MonoBehaviour:
     - Name: CG/image_route_alex1
       PathPrefix: Backgrounds/MainBackground
       Guid: d97be9fc69b16174ba219f4cbaee284f
+    - Name: screen_white
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 0bd21038e2b1d5a4f8db2a1cc24c627b
+    - Name: CG/image_route_alex2
+      PathPrefix: Backgrounds/MainBackground
+      Guid: 16d1eda8847a72d4c8331e9eddd3a47f
   - Id: Scripts
     Resources:
     - Name: start
       PathPrefix: Scripts
       Guid: bd74204837304834a9d15bf93f1a1ae9
+    - Name: alex
+      PathPrefix: Scripts
+      Guid: 6250a929588b8f349825bf4c6725bffb
+    - Name: alex2
+      PathPrefix: Scripts
+      Guid: ff9d0c61928d6e2479af7a04a735777a
   - Id: Audio
     Resources:
     - Name: alex_music
@@ -175,4 +187,8 @@ MonoBehaviour:
       PathPrefix: Audio
       Guid: e77b8c774e0b9b34ca415d198a8d048a
   - Id: Unlockables
+    Resources: []
+  - Id: Characters/92ed015e-e2d2-4408-8778-cbedc6a65179
+    Resources: []
+  - Id: Characters/4818d7dd-0e83-44a3-b5c3-cbbf4522a470
     Resources: []

@@ -8,6 +8,12 @@ using UnityEngine.Advertisements;
 public class ads : Command
 {
 
+	string gameId = "3243908";
+	bool testMode = true;
+
+	void Start () {
+		Advertisement.Initialize (gameId, testMode);
+	}
     public override Task ExecuteAsync ()
     {
         Debug.Log("Hello World!");
