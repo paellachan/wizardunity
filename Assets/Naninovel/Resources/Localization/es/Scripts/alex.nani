@@ -1,10 +1,13 @@
 ; Localization resource for script 'alex'
 
-# 5984fa46
-; I have chosen Dark Arts, a very powerful yet complex discipline.
+# aff96443
+; I've finally made up my mind.
 
-# 267a486c
-; Let's sign the book.
+# 6c68c64e
+; The once blank page started to shake and revealed the Dark Arts emblem. A bird's skull laced with a black snake.
+
+# 79048a12
+; I grabbed the nib firmly, ready to sign.
 
 # d2ae6417
 ; @input name summary:"Write your name to sign the book."
@@ -12,8 +15,8 @@
 # a0e4c01e
 ; It's done...
 
-# 2d94c7d6
-; Is everything okay, {name}?
+# 3492e13f
+; Is everything okay, Miss.{name}?
 
 # 2cbc2ea4
 ; g: I’m afraid other students are waiting to sign the book...
@@ -21,29 +24,29 @@
 # 48735b02
 ; I...I'm sorry!
 
-# fb21b74d
-; I spaced out again...
+# ed7dd959
+; (I spaced out again...)
 
-# 3c428859
-; It's normal to get excited. Now, please go back to your seat.
+# 31036d6c
+; It's normal to get excited. But now, I'd kindly ask you to go back to your seat.
 
-# f735f5d7
-; As I go back to my table I realize all the majors are sitting now by specialty, what means... I should be sitting with Alexander instead of Ray…
+# 5f604bfa
+; I suddenly realize that all the majors are gathered in their respective tables. That means I should be sitting with Alexander...
 
-# 4d2fbb80
-; I gaze into Ray’s direction, giving him an ‘I’m sorry, talk to you later’ look. He responds with a sad smile and a thumbs up.
+# dc15b394
+; I glance in Ray’s direction, giving him an ‘I’m sorry, talk to you later’ look. He responds with a sad smile and a thumbs up.
 
-# b917d9fe
-; As I approach Dark Arts table I discover Alex bragging with some other students.
+# 97e7dd5d
+; As I approach Dark Arts table I can see Alex bragging with some corvus students.
 
 # d1bdba2b
 ; Back to his old self...?
 
-# c1d15e63
-; a: Look who’s here...
+# d6a2caa3
+; a: Oh, my! Look who’s here...
 
-# 7db6f932
-; ...
+# 1180a76a
+; ?
 
 # 75f648ee
 ; cs: Another bird in the cage!
@@ -54,14 +57,17 @@
 # 4cb60941
 ; cs: Oh! C'mon…
 
-# 7db6f932
-; ...
+# 63199308
+; a: Don't argue with me.
 
-# 25f53dfe
-; What’s this all about?...
+# 9744d793
+; Is anything wrong?
 
-# f32605df
-; I look around to notice I’m the only Phoenix there. Did I... get fooled by him?
+# faf997a2
+; Alex, what’s this all about?
+
+# f949c1a
+; I look around to notice that I’m the only Phoenix in the table. Did I... get fooled by him?
 
 # 92e29de
 ; Alex, you…
@@ -81,38 +87,68 @@
 # 7db6f932
 ; ...
 
-# e8ce6a90
-; I can’t  help it and run away, rushing back to the dormitories. How could he be that cruel?
+# 9360dc2c
+; What are you saying??
+
+# 1f08c467
+; cs: You made her cry! waaaah, waaaahh.
+
+# 48a01952
+; cs: Hahahahaha!!
+
+# 3ebf7006
+; (I can't take this anymore...)
+
+# 5ad1ae14
+; I rush back to the dorms, shaking in anger. How could he be that cruel?
 
 # 1e6d80ee
 ; a: ...
 
+# 7cb704da
+; cs: Hahahaha! That stupid phoenix girl run away in tears.
+
+# 8b9e5d5a
+; Shut up, idiot.
+
 # 7db6f932
 ; ...
 
-# 9c28778a
-; Was he making fun of me all this time? Once you sign the book you can never go back.
+# 7db6f932
+; ...
+
+# 40362dc
+; Was he making fun of me all this time?
 
 # f90bbfb0
 ; I wait for some minutes secretly hoping he’ll come and apologize.
 
-# 1be13323
-; But he didn’t come.
+# f498cacd
+; But no one showed up.
 
-# b8bd9551
-; Stupid Alex! How could I think it would be a good idea to trust such a brat!
+# e24833b3
+; Stupid Alex! How could I've trust him!
 
-# 16349042
-; I sit down, plotting my revenge. You’ll never dare to humiliate me again.
+# d1124650
+; He lured me into choosing Dark Arts and now I'm doomed.
+
+# e906773d
+; I sit down and let my imagination run wild, plotting thousands of hypothetical revenges that I will never carry out.
+
+# 19bf9894
+; You’ll never dare to humiliate me again.
+
+# 9145d96
+; I stand up with determination.
 
 # 7c5af73c
 ; …
 
-# e72b3a71
-; Classes will start soon, I should better get going…
+# 97f2ba0d
+; Classes will start soon, I should get going.
 
-# e54a22
-; Hm… My yearly schedule has been updated automatically after I signed the book.
+# da7f8c7d
+; Hm… My school schedule has been updated after the ceremony. All my classes are now listed.
 
 # 48ba1af
 ; Let’s see… Seems that my first class will be spells.
@@ -123,11 +159,14 @@
 # cb8f7db
 ; Wahh!
 
-# 731cc6bd
-; I fell on the floor.
+# 9fb41baf
+; I bump into someone again.
 
-# 5b032706
-; ¡Hey!
+# d166dd78
+; Hey!
+
+# 555d748a
+; A familiar voice...
 
 # 440c62b
 ; r: Are you okay?
@@ -135,14 +174,14 @@
 # 5ed49775
 ; R...Ray!
 
-# d584ec8c
-; r: ...
+# c5b6bdc2
+; r: Hm... Hi.
 
 # 402b6e2e
 ; Is he mad at me?...
 
-# 964d49c8
-; r: What a coincidence… You…  left the ceremony early.
+# ed68d45a
+; r: What a coincidence… You... you left the ceremony early.
 
 # a4e9a6ab
 ; Yeah...
@@ -150,8 +189,8 @@
 # 27533291
 ; He looks at me with concern.
 
-# 1887547f
-; Is everything okay?
+# 4dcf4786
+; r: Is everything okay?
 
 # 879b5ad0
 ; Well…
@@ -162,29 +201,32 @@
 # e5e6291f
 ; r: I knew it!
 
-# bc525caa
-; r: This sneaky chick-head…
+# a05d88d9
+; r: That sneaky chick-head…
 
 # c4ab441b
 ; Listen.
 
+# fa036392
+; r: ?
+
 # 3c90b192
 ; I want you to tell me EVERYTHING.
 
-# a3b05d87
-; r: What are you talking about?
+# bee98785
+; r: I'm sorry, I got lost. Everything about what?
 
 # 73559849
 ; The rumors.
 
-# 6dbdc1
-; Tell me all you know about it.
+# 1ec8ef3
+; Tell me all you know about them.
 
 # e052f176
 ; r: What are you plotting?
 
-# 330b2ce1
-; Say it already!
+# 9331bdcb
+; Just feeling a little bit curious, c'mon, tell me.
 
 # 83d64015
 ; r: Okay...
@@ -192,29 +234,53 @@
 # 588d68d3
 ; r: You know who his father is, right?
 
-# ac42a621
-; Yeah, he's always bragging about him.
+# 303714d8
+; Yeah, he's always bragging about his family.
 
-# f83b489f
-; r: Back in the day he was a supporter of the Dark front.
+# 9d367b94
+; r: And you also know that back in the day he was a Dark front supporter.
 
-# f2723cd
-; But everyone knows that, right?
+# 3e6c8257
+; Everyone knows that, right?
 
-# 15fea9e2
-; I’ve even heard him taking pride on this.
+# f0bb051e
+; (I’ve even heard him taking pride on this.)
 
-# b5a198b2
-; r: Rumors says there’s a renaissance of the movement and Alex’s seems to be part of it.
+# 75dd8c08
+; Is that all?
 
-# 883fdef6
-; This accusation is very serious… Do you have proofs?
+# 4f611277
+; r: No. Listen...
+
+# ed47a57c
+; r: I've heard rumors about a kind of renaissance of the movement.
+
+# c46ad462
+; Wh...What?
+
+# 9baef782
+; r: And...
+
+# aa6819c0
+; r: Seems that Alex’s has a key role on it.
+
+# 6e3f0352
+; Th...This accusation is very serious…
+
+# b491d9c0
+; Are you sure about that?
 
 # 25b82932
 ; r: Hey!
 
-# 2f63fdd8
-; r: I’m just telling you what I’ve heard, not saying it’s true…
+# 4c94b32f
+; r: I’m just telling you what I’ve heard, not saying that it’s true…
+
+# 94c74c44
+; We need to find out.
+
+# 73ec265d
+; r: Why are you so interested, anyway?
 
 # fe49e8e6
 ; r: You're scaring me, you know?
@@ -222,56 +288,56 @@
 # e151de4b
 ; I'm sorry, I didn't mean to...
 
-# 88f5ee03
-; r: Anyway, I’ll be late for botanical… See you later, okay?
+# 88b2fa2e
+; r: It's okay. I...I’ll be late for botanical class… See you later, okay?
 
 # d62f1fe3
 ; See you later.
 
-# 5be394e0
-; I stare at Ray’s back walking away and disappearing among the students crowding the corridor.
+# de324b12
+; I stare at Ray’s back disappearing among the crowds of students.
 
-# f0aa10c1
-; I don’t really feel like seeing Alex and his cronies right now...
+# 5b685d1a
+; I don’t really feel like seeing Alex and his cronies right now... But I can't let him win.
 
 # 26462444
 ; I aimlessly head to the classroom.
 
-# c1d9c6bd
-; Excuse me...
+# e3afc538
+; Excuse me... I couldn't find the class and...
 
-# a5c9070d
-; t: It’s Okay Miss.{name}, please take a sit.
+# 486d3887
+; t: It’s Okay Miss.{name}, please take a seat.
 
 # 9f009021
 ; Huh?...
 
-# 56f1d8ba
-; I look around in despair, noticing the only available sit is next to Alex.
+# 635267
+; I look around in despair. There's only one seat available... And it's the one next to Alex.
 
-# 3ced945b
-; t: Miss.{name} could you please take a sit already?
+# 118e6285
+; t: Miss.{name},could you please sit already? I'm trying to start the class.
 
-# 6e4bec
-; Yes!
+# 4ce5fd22
+; I'm sorry professor.
 
-# b4ea23af
-; I sit next to Alex, trying to avoid looking at him.
-
-# 70457463
-; a: Tch...
+# da29946
+; I give up and sit next to Alex, trying to avoid looking at him.
 
 # 70457463
 ; a: Tch...
 
-# 1c35c0e4
-; What-do-you-want? I madly whisper.
+# 70457463
+; a: Tch...
 
-# 97a23103
-; a: You were late…
+# 2bf60b2b
+; What-do-you-want? I whisper.
 
-# 61853c18
-; Like you care!
+# a3637683
+; a: Why-were-you-late?
+
+# da0e46c5
+; Why-do-you-care?
 
 # 1059af50
 ; t: Miss.{name}! Silence please!
@@ -279,14 +345,20 @@
 # a1bdee26
 ; Sorry...
 
-# 34843201
-; Damn Alex…
+# dda0cb3a
+; I squint my eyes in anger.
 
-# a1ccb836
-; The rest of the class passed without any other incident.
+# 2747b89
+; Stop-it-already.
 
-# bf3ec443
-; The bell finally rings and I rushedly stand up, trying to escape the classroom before getting caught by him.
+# ba6e4f74
+; The class passed by without any other incident.
+
+# b8ab2d5d
+; After what felt like an eternity, the bell finally rung.
+
+# 38a42401
+; I hurry to the door, trying to escape before getting caught by him.
 
 # c73687b3
 ; a: Hey!
@@ -300,9 +372,6 @@
 # d13755ce
 ; I feel a hand grabbing my arm firmly.
 
-# 96faff67
-; I turn my head scared.
-
 # 78705253
 ; a: Where are you going?
 
@@ -315,11 +384,11 @@
 # 5c260965
 ; a: Are you mad?
 
-# ff1e7cdd
-; Of course I’m mad. Do you think I’m stupid? Let me go!
+# 6671af5f
+; Of course I am. Do you think I’m stupid? Let me go!
 
-# 7c520b47
-; a: Wait... I need to explain something to you.
+# c97da5ff
+; a: Wait... Let me explain myself.
 
 # e9f5db5f
 ; Let me go I said! You’re hurting me.
@@ -339,8 +408,8 @@
 # dd41c427
 ; @choice "Leave-" goto:.alex1b
 
-# 7f288a3f
-; I hope I don’t regret this.
+# 7146f413
+; Hope I won't regret this.
 
 # 4bb5ef1
 ; a: About this morning…
@@ -348,20 +417,23 @@
 # de652916
 ; a: I..
 
-# 7d41e729
-; a: nchts
+# 8f13532e
+; a: Nchts...
 
 # 5db020f5
 ; He’s struggling to say the words.
 
-# e4ec175
-; a: I’m sorry okay?
+# 2676d1d6
+; a: I..I’m sorry okay?
 
 # dd0fa963
 ; Huh?
 
 # 82b29768
 ; What did you say? I couldn’t hear you.
+
+# 9c4271
+; a: Don't play with me.
 
 # dea61e58
 ; a: I said I’m sorry!
@@ -372,26 +444,35 @@
 # 65af6490
 ; @choice "Leave." goto:.alex2b
 
-# cdcd47d6
-; Why you said those horrible things this morning then?
+# 975bd4dd
+; Why Did you say all those horrible things?
 
-# e6390362
-; a: I have a reputation to keep, you know?
+# f1ed1001
+; a: Well... I have a reputation to keep, you know?
 
 # 2a4edfef
 ; A reputation?
 
-# f3bb7056
-; a: You know how my father is… I cannot get overfriendly with phoenix students overnight.
+# 2e2f592b
+; (Is he for real?)
 
-# c21d37cf
-; a: It will look suspicious.
+# 378bc852
+; a: You know how my father is…
 
-# c3070e13
-; What does he mean? Was he trying to… protect me?
+# 83ec4128
+; a: I can't get overfriendly with some random phoenix students in front of the whole school.
 
-# 50d91299
-; Okay… But don’t talk to me like that again.
+# 21254801
+; a: It will be suspicious.
+
+# 3920731
+; (What does he mean?)
+
+# 63960031
+; Okay.
+
+# 9b386bcc
+; But don’t talk to me like that ever again.
 
 # 1e008240
 ; a: …
@@ -402,11 +483,11 @@
 # 89c56c51
 ; He leaves the conversation with a subtle smile in his lips.
 
-# 601526a7
-; I have the feeling there’s things I yet don’t understand about him.
+# 2de0701c
+; I have the feeling there’s things I don’t understand about him yet.
 
-# 43a18cbe
-; You didn’t look sorry a couple of hours ago
+# be35ea3c
+; You weren't that sorry a couple of hours ago.
 
 # 8304061e
 ; a: Oh, C’mon.
@@ -420,15 +501,21 @@
 # 7ed9ae61
 ; Maybe I shouldn’t have said that.
 
-# 24dce051
-; You got some nerve there, boy.
+# f95e5ec6
+; You have some nerve there, boy.
 
 # f986af8b
 ; a: Huh?
 
-# aad4d762
-; You do really think phoenix girls are stupid, don’t you?
+# a112da82
+; Do you really think phoenix girls are stupid, don’t you?
 
 # ae6fac26
 ; Leave me alone already!
+
+# 7db6f932
+; ...
+
+# 30b35d2b
+; I walk away heading to the next class.
 

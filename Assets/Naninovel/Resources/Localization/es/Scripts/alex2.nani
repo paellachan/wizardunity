@@ -1,2 +1,101 @@
 ; Localization resource for script 'alex2'
 
+# ceeba519
+; Some days have passed since the ceremony “incident” occurred.
+
+# 68ff3bbc
+; The days went on peacefully but busy. As expected, Dark Arts requires more effort and dedication than any other specialization.
+
+# 6755c40f
+; My relationship with Alex grew a little distant since then. Even living under the same roof, we hardly met or talked each other.
+
+# 3126712b
+; Was he avoiding me?
+
+# 27c205ea
+; But those tranquil days were about to come to an end…
+
+# 58af075d
+; Alex?
+
+# 25c159c0
+; a: Oh!
+
+# 4a8f1702
+; I startled him.
+
+# b3856128
+; Aren’t you coming for breakfast?
+
+# f986af8b
+; a: Huh?
+
+# 5298a136
+; a: Why you care? Aren’t you sitting with this doggy friend of yours anyway?
+
+# b16c5673
+; Don’t call him that!
+
+# 9bcea81
+; I sit with him because he is my friend. I don’t know why you are so bothered about it.
+
+# 9c21d08f
+; @choice "Are you jealous or something?" goto:.alex3a
+
+# 173ab50e
+; @choice "Don't say anything." goto:.alex3b
+
+# e4850879
+; Jealous? Me???
+
+# 197f4cf3
+; You must have gone insane.
+
+# 62ffbaf9
+; (Such an over reaction…)
+
+# f464b1b
+; (Could it be? He’s actually jealous for real?)
+
+# df415bbc
+; a: I'm not bothered, after all you are free to do as you please.
+
+# 7c5af73c
+; …
+
+# d04945bc
+; Go have your breakfast, your “friend” must be waiting for you.
+
+# 3380b20
+; So you are not coming then.
+
+# 6e3317e4
+; I have some things to take care about.
+
+# 81aa69ce
+; Like what
+
+# adff80a6
+; Oh, God. Corvus House matters, just go already.
+
+# cbaf8547
+; Okay…
+
+# b78adabd
+; (This is pretty suspicious.)
+
+# d62f1fe3
+; See you later.
+
+# 15c36455
+; Alex seems nervous, it isn't like him at all.
+
+# 3d41140f
+; What should I do?
+
+# 1894671f
+; @choice "Follow him." goto:.alex4a
+
+# b4ad821
+; @choice "Go and have breakfast." goto:.alex4b
+

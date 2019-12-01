@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: UIConfiguration
   m_EditorClassIdentifier: 
   ObjectsLayer: 5
-  RenderMode: 1
+  RenderMode: 0
   SortingOffset: 1
-  CustomUI: []
+  CustomUI:
+  - {fileID: 4231647223112603941, guid: c1a639c40d2ce08419850415f8cb1b6f, type: 3}
+  - {fileID: 7700162430679276755, guid: 5bdeb1f36f182df4e9e7de6c5c998ac7, type: 3}
+  - {fileID: 5916752520047180938, guid: 04b5fb2014aec0d4699f4c122c03bebf, type: 3}

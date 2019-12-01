@@ -37,24 +37,30 @@ SpriteAtlas:
     - {fileID: 2800000, guid: 2909cd77a11dc634bb23766df3ad40b6, type: 3}
     - {fileID: 2800000, guid: 22d9b53e6b8001d4988715e2d96e6021, type: 3}
     - {fileID: 2800000, guid: 759b04d34e3cb5f47a670fb3f947619c, type: 3}
-    totalSpriteSurfaceArea: 471988
+    - {fileID: 2800000, guid: 8a7c0ac3e88cfb347a789735db9bb35a, type: 3}
+    - {fileID: 2800000, guid: 5779d56fb6b10064da7a6112ba0bc8f9, type: 3}
+    totalSpriteSurfaceArea: 476284
     bindAsDefault: 1
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
   - {fileID: 21300000, guid: 3b6e227147f0bd44ba6f2afedda3f491, type: 3}
+  - {fileID: 21300000, guid: 8a7c0ac3e88cfb347a789735db9bb35a, type: 3}
   - {fileID: 21300000, guid: 759b04d34e3cb5f47a670fb3f947619c, type: 3}
   - {fileID: 21300000, guid: cbb4aee6ef9b64748ad556dccd027ba2, type: 3}
   - {fileID: 21300000, guid: 2909cd77a11dc634bb23766df3ad40b6, type: 3}
   - {fileID: 21300000, guid: 2106bb99e55734b4892ccffcb2cebec5, type: 3}
   - {fileID: 21300000, guid: 22d9b53e6b8001d4988715e2d96e6021, type: 3}
   - {fileID: 21300000, guid: c836be4ef56820349b09b803c2ad5314, type: 3}
+  - {fileID: 21300000, guid: 5779d56fb6b10064da7a6112ba0bc8f9, type: 3}
   m_PackedSpriteNamesToIndex:
   - bg_popup
+  - spr_ticket
   - spr_bg_dialog
   - bt_normal
   - spr_logo
   - bt_cancel
   - spr_glow
   - spr_gem
+  - spr_gradient
   m_Tag: AtlasUi
   m_IsVariant: 0

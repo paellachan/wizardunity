@@ -1,12 +1,14 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Naninovel\Runtime\Command\ads.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Naninovel\Runtime\Script\ScriptAsset.cs">
     <Files>
       <File FileName="Assets\Naninovel\Runtime\Actor\TextPrinter\UITextPrinter.cs" Line="1" Column="1" />
       <File FileName="Assets\Naninovel\Runtime\Script\CommandScriptLine.cs" Line="1" Column="1" />
-      <File FileName="Assets\Naninovel\Runtime\ScriptPlayer\ScriptPlayer.cs" Line="364" Column="1" />
-      <File FileName="Assets\Naninovel\Runtime\Command\ads.cs" Line="30" Column="1" />
-      <File FileName="Assets\Naninovel\Runtime\Command\adsInit.cs" Line="9" Column="22" />
+      <File FileName="Assets\Naninovel\Runtime\ScriptPlayer\ScriptPlayer.cs" Line="1" Column="1" />
+      <File FileName="Assets\Naninovel\Runtime\Command\ads.cs" Line="1" Column="1" />
+      <File FileName="Assets\Naninovel\Runtime\Command\adsInit.cs" Line="1" Column="1" />
+      <File FileName="Assets\test.cs" Line="1" Column="1" />
+      <File FileName="Assets\Naninovel\Runtime\Script\ScriptAsset.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

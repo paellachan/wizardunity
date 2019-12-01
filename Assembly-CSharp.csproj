@@ -450,16 +450,35 @@
      <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\DicedSpriteRenderer.cs" />
      <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\DicedUnit.cs" />
      <Compile Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\Runtime\Utilities.cs" />
+     <Compile Include="Assets\test.cs" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Properties.cginc" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
      <None Include="Assets\NaninovelSpriteDicing\ThirdParty\SpriteDicing\LICENSE.txt" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\TransitionEffects.cginc" />
+     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Masking.shader" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\RevealableText.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap-Mobile.shader" />
      <None Include="Assets\Naninovel\Fonts\LICENSE.txt" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\TransitionalSprite.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF Overlay.shader" />
+     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
      <None Include="Assets\Naninovel\ThirdParty\NCalc\LICENSE.txt" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Surface.cginc" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Overlay.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro.cginc" />
      <None Include="Assets\Naninovel\ThirdParty\UnityCommon\LICENSE.txt" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\NaninovelCG.cginc" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF.shader" />
      <None Include="Assets\Naninovel\ThirdParty\UnityConsole\LICENSE.txt" />
      <None Include="Assets\Naninovel\Resources\Naninovel\Shaders\DigitalGlitch.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Sprite.shader" />
+     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface.shader" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>D:/wizard/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
  </Reference>
