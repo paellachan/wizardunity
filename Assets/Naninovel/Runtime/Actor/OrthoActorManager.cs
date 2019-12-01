@@ -5,25 +5,24 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// Manages actors in the orthographic scene space.
+    /// Manages <typeparamref name="TActor"/> objects in orthographic scene space.
     /// </summary>
-    public abstract class OrthoActorManager<TActor, TState> : ActorManager<TActor, TState>
+    public abstract class OrthoActorManager<TActor, TState, TMeta, TConfig> : ActorManager<TActor, TState, TMeta, TConfig>
         where TActor : IActor
         where TState : ActorState<TActor>, new()
+        where TMeta : OrthoActorMetadata
+        where TConfig : OrthoActorManagerConfiguration<TMeta>
     {
         /// <summary>
         /// Scene origin point position in world space.
         /// </summary>
-        public Vector2 GlobalSceneOrigin => SceneToWorldSpace(config.SceneOrigin);
+        public Vector2 GlobalSceneOrigin => SceneToWorldSpace(Configuration.SceneOrigin);
 
         protected CameraManager OrthoCamera { get; private set; }
 
-        private readonly OrthoActorManagerConfiguration config;
-
-        public OrthoActorManager (OrthoActorManagerConfiguration config, CameraManager orthoCamera) 
+        public OrthoActorManager (TConfig config, CameraManager orthoCamera)
             : base(config)
         {
-            this.config = config;
             OrthoCamera = orthoCamera;
         }
 
@@ -42,7 +41,7 @@ namespace Naninovel
         /// </summary>
         public void MoveActorToBottom (TActor actor)
         {
-            var metadata = GetActorMetadata<OrthoActorMetadata>(actor.Id);
+            var metadata = GetActorMetadata(actor.Id);
             var bottomY = (metadata.Pivot.y * actor.Scale.y) / metadata.PixelsPerUnit - OrthoCamera.MaxOrthoSize;
             actor.ChangePositionY(bottomY);
         }

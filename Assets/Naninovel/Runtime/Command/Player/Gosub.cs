@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 
@@ -42,8 +43,6 @@ namespace Naninovel.Commands
     /// </example>
     public class Gosub : Command
     {
-        private struct UndoData { public bool Executed; }
-
         /// <summary>
         /// Path to jump into in the following format: `ScriptName.LabelName`.
         /// When label name is ommited, will play provided script from the start.
@@ -52,32 +51,14 @@ namespace Naninovel.Commands
         [CommandParameter(alias: NamelessParameterAlias)]
         public Named<string> Path { get => GetDynamicParameter<Named<string>>(null); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var player = Engine.GetService<ScriptPlayer>();
 
-            undoData.Executed = true;
-
-            var spot = new PlaybackSpot {
-                ScriptName = player.PlayedScript?.Name,
-                LineIndex = player.PlayedCommand?.LineIndex + 1 ?? 0,
-            };
+            var spot = new PlaybackSpot(player.PlayedScript?.Name, player.PlayedCommand?.LineIndex + 1 ?? 0, 0);
             player.LastGosubReturnSpots.Push(spot);
 
-            await new Goto { Path = Path }.ExecuteAsync();
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            var player = Engine.GetService<ScriptPlayer>();
-            player.LastGosubReturnSpots.Pop();
-
-            undoData = default;
-            return Task.CompletedTask;
+            await new Goto { Path = Path }.ExecuteAsync(cancellationToken);
         }
     } 
 }

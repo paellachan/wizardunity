@@ -1,7 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -31,8 +31,6 @@ namespace Naninovel.Commands
     [CommandAlias("bgm")]
     public class PlayBgm : Command, Command.IPreloadable
     {
-        private struct UndoData { public bool Executed; public List<AudioManager.ClipState> BgmState; }
-
         /// <summary>
         /// Path to the music track to play.
         /// </summary>
@@ -54,8 +52,6 @@ namespace Naninovel.Commands
         [CommandParameter(optional: true)]
         public bool Loop { get => GetDynamicParameter(true); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
         public async Task HoldResourcesAsync ()
         {
             if (string.IsNullOrWhiteSpace(BgmPath)) return;
@@ -74,34 +70,18 @@ namespace Naninovel.Commands
             Engine.GetService<AudioManager>()?.ReleaseAudioResources(this, IntroBgmPath);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var manager = Engine.GetService<AudioManager>();
-            var allBgmState = manager.CloneAllPlayingBgmState();
-
-            undoData.Executed = true;
-            undoData.BgmState = allBgmState;
-
             if (string.IsNullOrWhiteSpace(BgmPath))
-                await Task.WhenAll(allBgmState.Select(s => PlayOrModifyTrackAsync(manager, s.Path, Volume, Loop, Duration, IntroBgmPath)));
-            else await PlayOrModifyTrackAsync(manager, BgmPath, Volume, Loop, Duration, IntroBgmPath);
+                await Task.WhenAll(manager.PlayedBgm.Select(s => PlayOrModifyTrackAsync(manager, s.Path, Volume, Loop, Duration, IntroBgmPath, cancellationToken)));
+            else await PlayOrModifyTrackAsync(manager, BgmPath, Volume, Loop, Duration, IntroBgmPath, cancellationToken);
         }
 
-        public override async Task UndoAsync ()
+        private static async Task PlayOrModifyTrackAsync (AudioManager mngr, string path, float volume, bool loop, float time, string introPath, CancellationToken cancellationToken)
         {
-            if (!undoData.Executed) return;
-
-            var manager = Engine.GetService<AudioManager>();
-            await manager.StopAllBgmAsync();
-            await Task.WhenAll(undoData.BgmState.Select(s => PlayOrModifyTrackAsync(manager, s.Path, s.Volume, s.IsLooped, 0, null)));
-
-            undoData = default;
-        }
-
-        private static async Task PlayOrModifyTrackAsync (AudioManager mngr, string path, float volume, bool loop, float time, string introPath)
-        {
-            if (mngr.IsBgmPlaying(path)) mngr.ModifyBgm(path, volume, loop, time);
-            else await mngr.PlayBgmAsync(path, volume, time, loop, introPath);
+            if (mngr.IsBgmPlaying(path)) await mngr.ModifyBgmAsync(path, volume, loop, time, cancellationToken);
+            else await mngr.PlayBgmAsync(path, volume, time, loop, introPath, cancellationToken);
         }
     } 
 }

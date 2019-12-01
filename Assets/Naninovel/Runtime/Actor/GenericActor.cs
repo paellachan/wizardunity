@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="IActor"/> implementation using <typeparamref name="TBehaviour"/> to represent an actor.
+    /// A <see cref="IActor"/> implementation using <typeparamref name="TBehaviour"/> to represent the actor.
     /// </summary>
     /// <remarks>
     /// Resource prefab should have a <typeparamref name="TBehaviour"/> component attached to the root object.
@@ -38,35 +39,36 @@ namespace Naninovel
 
             var providerMngr = Engine.GetService<ResourceProviderManager>();
             var localeMngr = Engine.GetService<LocalizationManager>();
-            var prefabResource = await new LocalizableResourceLoader<TBehaviour>(
-                providerMngr.GetProviderList(ResourceProviderType.Project),
-                localeMngr, metadata.LoaderConfiguration.PathPrefix).LoadAsync(Id);
+            var prefabLoader = new LocalizableResourceLoader<GameObject>(metadata.LoaderConfiguration, providerMngr, localeMngr);
+            var prefabResource = await prefabLoader.LoadAsync(Id);
 
-            Behaviour = Engine.Instantiate(prefabResource.Object);
+            Behaviour = Engine.Instantiate(prefabResource.Object).GetComponent<TBehaviour>();
             Behaviour.transform.SetParent(Transform);
 
             SetVisibility(false);
         }
 
-        public override Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default)
+        public override Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
-            this.appearance = appearance;
-
-            if (string.IsNullOrEmpty(appearance))
-                return Task.CompletedTask;
-
-            Behaviour.InvokeAppearanceChangedEvent(appearance);
-
+            SetAppearance(appearance);
             return Task.CompletedTask;
         }
 
-        public override Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default)
+        public override Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             SetVisibility(isVisible);
             return Task.CompletedTask;
         }
 
-        protected virtual void SetAppearance (string appearance) => ChangeAppearanceAsync(appearance, 0).WrapAsync();
+        protected virtual void SetAppearance (string appearance)
+        {
+            this.appearance = appearance;
+
+            if (string.IsNullOrEmpty(appearance))
+                return;
+
+            Behaviour.InvokeAppearanceChangedEvent(appearance);
+        }
 
         protected virtual void SetVisibility (bool isVisible)
         {

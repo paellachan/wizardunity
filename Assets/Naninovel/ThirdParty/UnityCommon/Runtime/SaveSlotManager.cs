@@ -23,6 +23,8 @@ namespace UnityCommon
         public abstract void DeleteSaveSlot (string slotId);
 
         protected abstract bool PrettifyJson { get; }
+        protected abstract bool Binary { get; }
+        protected abstract string Extension { get; }
 
         protected void InvokeOnBeforeSave () { IsSaving = true; OnBeforeSave.SafeInvoke(); }
         protected void InvokeOnSaved () { IsSaving = false; OnSaved.SafeInvoke(); }
@@ -38,13 +40,25 @@ namespace UnityCommon
         protected virtual string GameDataPath => GetGameDataPath();
         protected virtual string SaveDataPath => string.Concat(GameDataPath, "/SaveData");
         protected override bool PrettifyJson => Debug.isDebugBuild;
+        protected override bool Binary => false;
+        protected override string Extension => "json";
+
+        private static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+        private bool saveInProgress;
 
         public async Task SaveAsync (string slotId, TData data)
         {
+            while (saveInProgress && Application.isPlaying)
+                await waitForEndOfFrame;
+
+            saveInProgress = true;
+
             InvokeOnBeforeSave();
 
             await SerializeDataAsync(slotId, data);
             InvokeOnSaved();
+
+            saveInProgress = false;
         }
 
         public async Task<TData> LoadAsync (string slotId)
@@ -53,7 +67,7 @@ namespace UnityCommon
 
             if (!SaveSlotExists(slotId))
             {
-                Debug.LogError(string.Format("Slot '{0}' not found when loading '{1}' data.", slotId, typeof(TData)));
+                Debug.LogError($"Slot '{slotId}' not found when loading '{typeof(TData)}' data.");
                 return default;
             }
 
@@ -79,7 +93,7 @@ namespace UnityCommon
         public override bool AnySaveExists ()
         {
             if (!Directory.Exists(SaveDataPath)) return false;
-            return Directory.GetFiles(SaveDataPath, "*.json", SearchOption.TopDirectoryOnly).Length > 0;
+            return Directory.GetFiles(SaveDataPath, $"*.{Extension}", SearchOption.TopDirectoryOnly).Length > 0;
         }
 
         public override void DeleteSaveSlot (string slotId)
@@ -88,20 +102,34 @@ namespace UnityCommon
             IOUtils.DeleteFile(SlotIdToFilePath(slotId));
         }
 
-        public virtual string SlotIdToFilePath (string slotId) => string.Concat(SaveDataPath, "/", slotId, ".json");
+        public virtual string SlotIdToFilePath (string slotId) => string.Concat(SaveDataPath, "/", slotId, $".{Extension}");
 
         protected virtual async Task SerializeDataAsync (string slotId, TData data)
         {
             var jsonData = JsonUtility.ToJson(data, PrettifyJson);
             var filePath = SlotIdToFilePath(slotId);
             IOUtils.CreateDirectory(SaveDataPath);
-            await IOUtils.WriteTextFileAsync(filePath, jsonData);
+
+            if (Binary)
+            {
+                var bytes = await StringUtils.ZipStringAsync(jsonData);
+                await IOUtils.WriteFileAsync(filePath, bytes);
+            }
+            else await IOUtils.WriteTextFileAsync(filePath, jsonData);
         }
 
         protected virtual async Task<TData> DeserializeDataAsync (string slotId)
         {
             var filePath = SlotIdToFilePath(slotId);
-            var jsonData = await IOUtils.ReadTextFileAsync(filePath);
+            var jsonData = default(string);
+
+            if (Binary)
+            {
+                var bytes = await IOUtils.ReadFileAsync(filePath);
+                jsonData = await StringUtils.UnzipStringAsync(bytes);
+            }
+            else jsonData = await IOUtils.ReadTextFileAsync(filePath);
+
             return JsonUtility.FromJson<TData>(jsonData);
         }
 

@@ -9,9 +9,9 @@
 
 I feel as overwhelmed as the first time I came here.
 The castle was outstandingly beautiful. Thousands of enchanted lamps floated illuminating the exterior.
-@hideUI currency
+@hideUI hud_currency
 Loads of younger students are arriving. It makes me feel nostalgic.
-@showUI currency
+@showUI hud_currency
 I can't believe 5 years ago I was also one of them.
 I suddenly bump into someone.
 @sfx audiobump
@@ -20,7 +20,7 @@ r: Oi!
 @wait 0.5
 I look up to see a very tall, tanned and muscular young man with jet black hair.
 r: Why didn’t you tell me you were already here?!
-@stopBgm time:1
+@stopBgm  time:1
 @wait 1.0
 @bgm funny_music
 @char r.normal
@@ -70,7 +70,7 @@ A little bit different.
 r: Different? You mean the tan?
 @char r.happy
 r: I spent the summer vacations in a Wizzard Ball training camp in the south of France.
-@stopBgm time:1
+@stopBgm  time:1
 @wait 1.0
 @Bgm alex_music
 a: Oh my! What’s that disagreeable smell?
@@ -195,7 +195,7 @@ a: See you later.
 What was all that about? That narcissistic brat… I can’t believe I have to share dorms with that bully...
 I’ll go look for Ray.
 @Wait 1.0
-@stopBgm time:1
+@stopBgm  time:1
 @wait 1.0
 @bgm funny_music
 @back screen_canteen.CircleReveal
@@ -276,7 +276,7 @@ r: Well...
 r: See you tomorrow!
 @Wait 1.0
 @hide r
-@stopBgm time:1
+@stopBgm  time:1
 @wait 1.0
 ...
 @ads
@@ -301,7 +301,7 @@ I stand up and start looking for the famous private bathroom. Having one feels l
 @back screen_door.CircleReveal
 There’s a door over there. Could it be there?
 I slowly open the door...
-@stopBgm time:1
+@stopBgm  time:1
 @wait 1.0
 @bgm alex_music
 @back CG/image_door.CircleReveal
@@ -332,7 +332,7 @@ Teleport yourself, you freak!
 a: Wh..What??
 I run away without replying to him, feeling embarrassed and mad at the same time.
 @wait 1.0
-@stopBgm time:1
+@stopBgm  time:1
 @back screen_dormcommon.CircleReveal
 @bgm relaxed_music
 @wait 1.0
@@ -355,7 +355,7 @@ a: Hello?
 Alex?
 Am I dreaming? What are you…
 @back screen_dormcommon.CircleReveal
-@stopBgm time:1
+@stopBgm  time:1
 @Bgm alex_music
 @fx ShakeBackground
 @char a.chatting
@@ -380,7 +380,7 @@ I need to go.
 NOW.
 @wait 1.0
 @back screen_canteen.CircleReveal
-@stopBgm time:1
+@stopBgm  time:1
 @wait 1.0
 @Bgm funny_music
 I arrive at the dining hall completely out of breath. I look into the crowd.... everyone is already there.

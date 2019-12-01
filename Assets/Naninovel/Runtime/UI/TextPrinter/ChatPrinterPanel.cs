@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,11 +16,17 @@ namespace Naninovel.UI
     /// </summary>
     public class ChatPrinterPanel : UITextPrinterPanel
     {
-        public override string PrintedText { get; set; }
-        public override string ActorNameText { get; set; }
+        [System.Serializable]
+        private class GameState
+        {
+            public List<ChatMessage.State> Messages;
+            public string LastMesssageText;
+        }
 
-        protected string LastAuthorId { get; private set; }
-        protected CharacterMetadata LastAuthorMeta { get; private set; }
+        public override string PrintedText { get => printedText; set => SetPrintedText(value); }
+        public override string ActorNameText { get; set; }
+        public override float RevealProgress { get => revealProgress; set { if (value == 0) DestroyAllMessages(); } }
+        public override string Apperance { get; set; }
 
         [SerializeField] private ScrollRect scrollRect = default;
         [SerializeField] private RectTransform messagesContainer = default;
@@ -28,17 +35,27 @@ namespace Naninovel.UI
         [SerializeField] private float revealDelayModifier = 3f;
         [SerializeField] private float printDotDelay = .5f;
 
-        private Stack<ChatMessage> messagesStack = new Stack<ChatMessage>();
+        private Stack<ChatMessage> messageStack = new Stack<ChatMessage>();
+        private CharacterManager characterManager;
+        private StateManager stateManager;
+        private string lastAuthorId;
+        private string printedText;
+        private string lastMesssageText;
+        private float revealProgress = .1f;
 
         public override IEnumerator RevealPrintedTextOverTime (CancellationToken cancellationToken, float revealDelay)
         {
-            var message = AddMessage();
+            var message = AddMessage(string.Empty, lastAuthorId);
+
+            revealProgress = .1f;
 
             if (revealDelay > 0)
             {
-                var revealFinishTime = Time.time + PrintedText.Count(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)) * revealDelay * revealDelayModifier;
+                var revealDuration = lastMesssageText.Count(c => char.IsLetterOrDigit(c)) * revealDelay * revealDelayModifier;
+                var revealStartTime = Time.time;
+                var revealFinishTime = revealStartTime + revealDuration;
                 var lastPrintDotTime = 0f;
-                while (revealFinishTime > Time.time)
+                while (revealFinishTime > Time.time && messageStack.Count > 0 && messageStack.Peek() == message)
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
@@ -49,35 +66,18 @@ namespace Naninovel.UI
                         message.PrintedText = message.PrintedText.Length >= 9 ? string.Empty : message.PrintedText + " . ";
                     }
 
+                    revealProgress = (Time.time - revealStartTime) / revealDuration;
+
                     yield return null;
                 }
             }
 
-            message.PrintedText = PrintedText;
+            if (messageStack.Contains(message))
+                message.PrintedText = lastMesssageText;
+
             ScrollToBottom();
-        }
 
-        public override void RevealPrintedText ()
-        {
-            if (messagesStack.Count == 0)
-            {
-                if (string.IsNullOrEmpty(PrintedText)) return;
-                AddMessage();
-            }
-
-            var lastMessage = messagesStack.Peek();
-            if (lastMessage.PrintedText != PrintedText)
-                lastMessage = AddMessage();
-
-            lastMessage.PrintedText = PrintedText;
-            lastMessage.IsVisible = true;
-            ScrollToBottom();
-        }
-
-        public override void HidePrintedText ()
-        {
-            // Usually called to clear the printer, so removing all messages here.
-            DestroyAllMessages();
+            revealProgress = 1f;
         }
 
         public override void SetWaitForInputIndicatorVisible (bool isVisible)
@@ -88,42 +88,86 @@ namespace Naninovel.UI
 
         public override void OnAuthorChanged (string authorId, CharacterMetadata authorMeta)
         {
-            LastAuthorId = authorId;
-            LastAuthorMeta = authorMeta;
+            lastAuthorId = authorId;
         }
 
         protected override void Awake ()
         {
             base.Awake();
             this.AssertRequiredObjects(scrollRect, messagesContainer, messagePrototype, inputIndicator);
+
+            characterManager = Engine.GetService<CharacterManager>();
+            stateManager = Engine.GetService<StateManager>();
         }
 
-        private ChatMessage AddMessage ()
+        protected override void OnEnable ()
+        {
+            base.OnEnable();
+
+            stateManager.AddOnGameSerializeTask(SerializeState);
+            stateManager.AddOnGameDeserializeTask(DeserializeState);
+        }
+
+        protected override void OnDisable ()
+        {
+            base.OnDisable();
+
+            stateManager.RemoveOnGameSerializeTask(SerializeState);
+            stateManager.RemoveOnGameDeserializeTask(DeserializeState);
+        }
+
+        protected virtual void SetPrintedText (string value)
+        {
+            printedText = value;
+
+            if (messageStack.Count == 0 || string.IsNullOrEmpty(lastMesssageText))
+                lastMesssageText = value;
+            else
+            {
+                var previousText = string.Join(string.Empty, messageStack.Select(m => m.PrintedText).Reverse());
+                lastMesssageText = value.GetAfterFirst(previousText);
+            }
+        }
+
+        private ChatMessage AddMessage (string messageText, string authorId = null, bool instant = false)
         {
             var message = Instantiate(messagePrototype);
             message.transform.SetParent(messagesContainer, false);
-            message.ActorNameText = ActorNameText;
+            message.PrintedText = messageText;
+            message.AuthorId = authorId;
 
-            if (LastAuthorMeta != null && LastAuthorMeta.UseCharacterColor)
+            if (!string.IsNullOrEmpty(authorId))
             {
-                message.MessageColor = LastAuthorMeta.MessageColor;
-                message.ActorNameTextColor = LastAuthorMeta.NameColor;
+                message.ActorNameText = characterManager.GetDisplayName(authorId);
+                message.AvatarTexture = CharacterManager.GetAvatarTextureFor(authorId);
+
+                var meta = characterManager.GetActorMetadata(authorId);
+                if (meta.UseCharacterColor)
+                {
+                    message.MessageColor = meta.MessageColor;
+                    message.ActorNameTextColor = meta.NameColor;
+                }
+            }
+            else
+            {
+                message.ActorNameText = string.Empty;
+                message.AvatarTexture = null;
             }
 
-            message.AvatarTexture = CharacterManager.GetAvatarTextureFor(LastAuthorId);
+            if (instant) message.IsVisible = true;
+            else message.Show();
 
-            message.Show();
-            messagesStack.Push(message);
+            messageStack.Push(message);
             ScrollToBottom();
             return message;
         }
 
         private void DestroyAllMessages ()
         {
-            for (int i = 0; i < messagesStack.Count; i++)
+            while (messageStack.Count > 0)
             {
-                var message = messagesStack.Pop();
-                Destroy(message);
+                var message = messageStack.Pop();
+                ObjectUtils.DestroyOrImmediate(message.gameObject);
             }
         }
 
@@ -131,6 +175,33 @@ namespace Naninovel.UI
         {
             await new WaitForEndOfFrame();
             scrollRect.verticalNormalizedPosition = 0;
+        }
+
+        private Task SerializeState (GameStateMap stateMap)
+        {
+            var state = new GameState() {
+                Messages = messageStack.Select(m => m.GetState()).Reverse().ToList(),
+                LastMesssageText = lastMesssageText
+            };
+            stateMap.SetState(state);
+            return Task.CompletedTask;
+        }
+
+        private Task DeserializeState (GameStateMap stateMap)
+        {
+            DestroyAllMessages();
+            lastMesssageText = null;
+
+            var state = stateMap.GetState<GameState>();
+            if (state is null) return Task.CompletedTask;
+
+            if (state.Messages?.Count > 0)
+                foreach (var message in state.Messages)
+                    AddMessage(message.PrintedText, message.AuthorId, true);
+
+            lastMesssageText = state.LastMesssageText;
+
+            return Task.CompletedTask;
         }
     } 
 }

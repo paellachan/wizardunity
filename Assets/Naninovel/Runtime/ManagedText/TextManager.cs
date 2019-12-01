@@ -28,7 +28,7 @@ namespace Naninovel
 
         public Task InitializeServiceAsync ()
         {
-            localizationManager.AddChangeLocaleCallback(ApplyManagedTextAsync);
+            localizationManager.AddChangeLocaleTask(ApplyManagedTextAsync);
             documentLoader = new ScriptLoader(config.LoaderConfiguration, providersManager, localizationManager);
             return Task.CompletedTask;
         }
@@ -37,7 +37,7 @@ namespace Naninovel
 
         public void DestroyService ()
         {
-            localizationManager?.RemoveChangeLocaleCallback(ApplyManagedTextAsync);
+            localizationManager?.RemoveChangeLocaleTask(ApplyManagedTextAsync);
             documentLoader?.UnloadAll();
         }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="IBackgroundActor"/> implementation using <see cref="BackgroundActorBehaviour"/> to represent an actor.
+    /// A <see cref="IBackgroundActor"/> implementation using <see cref="BackgroundActorBehaviour"/> to represent the actor.
     /// </summary>
     /// <remarks>
     /// Resource prefab should have a <see cref="BackgroundActorBehaviour"/> component attached to the root object.
@@ -19,9 +20,9 @@ namespace Naninovel
             : base(id, metadata) { }
 
         public async Task TransitionAppearanceAsync (string appearance, float duration, EasingType easingType = default,
-            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null)
+            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null, CancellationToken cancellationToken = default)
         {
-            await ChangeAppearanceAsync(appearance, duration, easingType);
+            await ChangeAppearanceAsync(appearance, duration, easingType, cancellationToken);
         }
     }
 }

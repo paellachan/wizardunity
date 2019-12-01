@@ -13,6 +13,7 @@ namespace Naninovel
         private SerializedProperty fontData;
         private SerializedProperty revealFadeWidth;
         private SerializedProperty slideClipRect;
+        private SerializedProperty italicSlantAngle;
 
         protected override void OnEnable ()
         {
@@ -22,6 +23,7 @@ namespace Naninovel
             fontData = serializedObject.FindProperty("m_FontData");
             revealFadeWidth = serializedObject.FindProperty("revealFadeWidth");
             slideClipRect = serializedObject.FindProperty("slideClipRect");
+            italicSlantAngle = serializedObject.FindProperty("italicSlantAngle");
         }
 
         public override void OnInspectorGUI ()
@@ -36,6 +38,7 @@ namespace Naninovel
             {
                 EditorGUILayout.PropertyField(revealFadeWidth);
                 EditorGUILayout.PropertyField(slideClipRect);
+                EditorGUILayout.PropertyField(italicSlantAngle);
             }
             --EditorGUI.indentLevel;
 

@@ -37,7 +37,7 @@ namespace Naninovel
             if (!Engine.IsInitialized)
             {
                 isWorking = true;
-                Engine.OnInitialized += InializeEditor;
+                Engine.OnInitializationFinished += InializeEditor;
                 EditorInitializer.InitializeAsync().WrapAsync();
             }
             else InializeEditor();
@@ -50,7 +50,7 @@ namespace Naninovel
 
         private void InializeEditor ()
         {
-            Engine.OnInitialized -= InializeEditor;
+            Engine.OnInitializationFinished -= InializeEditor;
 
             providersManager = Engine.GetService<ResourceProviderManager>();
             isWorking = false;
@@ -110,7 +110,7 @@ namespace Naninovel
             Debug.Assert(providersManager != null);
             providersManager.GetProviderList(providerType).UnloadResources();
             var resources = await providersManager.GetProviderList(providerType).LoadResourcesAsync<ScriptAsset>(pathPrefix);
-            return resources.Select(r => new Script(r.Path.Contains("/") ? r.Path.GetAfter("/") : r.Path, r.Object.ScriptText)).ToList();
+            return resources.Select(r => new Script(r.Path.Contains("/") ? r.Path.GetAfter("/") : r.Path, r.Object.ScriptText, ignoreErrors: true)).ToList();
         }
 
         private void WriteLocalizationScripts (List<Script> sourceScripts, string pathPrefix)
@@ -130,8 +130,8 @@ namespace Naninovel
                 foreach (var line in sourceScript.Lines)
                 {
                     if (!Command.IsLineLocalizable(line)) continue;
-                    if (tryUpdate && existingLocTerms != null && existingLocTerms.ContainsKey(line.ContentHash))
-                        scriptText += $"{GenerateTerm(line, existingLocTerms[line.ContentHash])}\n";
+                    if (tryUpdate && existingLocTerms != null && existingLocTerms.ContainsKey(line.LineHash))
+                        scriptText += $"{GenerateTerm(line, existingLocTerms[line.LineHash])}\n";
                     else scriptText += $"{GenerateTerm(line)}\n";
                 }
                 File.WriteAllText($"{outputPath}/{sourceScript.Name}.nani", scriptText, Encoding.UTF8);
@@ -140,7 +140,7 @@ namespace Naninovel
 
         private static string GenerateTerm (ScriptLine scriptLine, List<string> existingLocTerms = null)
         {
-            var term = $"# {scriptLine.ContentHash}\n; {scriptLine.Text}\n";
+            var term = $"# {scriptLine.LineHash}\n; {scriptLine.Text}\n";
             if (existingLocTerms != null)
             {
                 foreach (var termText in existingLocTerms)

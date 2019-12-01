@@ -11,7 +11,9 @@ namespace Naninovel
 
         [Tooltip("Configuration of the resource loader used with the localization resources.")]
         public ResourceLoaderConfiguration LoaderConfiguration = new ResourceLoaderConfiguration { PathPrefix = DefaultLocalizationPathPrefix };
-        [Tooltip("Default locale of the game. When user selects a default locale, original resources will be used.")]
-        public string DefaultLocale = "en";
+        [Tooltip("Locale of the source project resources (the original language in which you create the assets).")]
+        public string SourceLocale = "en";
+        [Tooltip("Locale selected by default when running the game for the first time. Will select `Source Locale` when not specified.")]
+        public string DefaultLocale = default;
     }
 }

@@ -1,6 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -12,10 +12,7 @@ namespace Naninovel.Commands
     /// <remarks>
     /// Check out this [video guide](https://youtu.be/F9meuMzvGJw) on usage example.
     /// <br/><br/>
-    /// To assign a display name for a character using this command consider using [binding the name to a custom variable](/guide/characters.html#display-names).
-    /// <br/><br/>
-    /// The state of the UI is not serialized when saving the game, so make sure to prevent 
-    /// player from saving the game when the UI is visible (eg, with `@hideText` command).
+    /// To assign a display name for a character using this command consider [binding the name to a custom variable](/guide/characters.html#display-names).
     /// </remarks>
     /// <example>
     /// ; Allow user to enter an arbitrary text and assign it to `name` custom state variable
@@ -46,32 +43,21 @@ namespace Naninovel.Commands
         [CommandParameter(optional: true)]
         public string Summary { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
         /// <summary>
+        /// A predefined value to set for the input field.
+        /// </summary>
+        [CommandParameter("value", true)]
+        public string PredefinedValue { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
+        /// <summary>
         /// Whether to automatically resume script playback when user submits the input form.
         /// </summary>
         [CommandParameter("play", true)]
         public bool PlayOnSubmit { get => GetDynamicParameter(true); set => SetDynamicParameter(value); }
 
-        private CustomVariableManager VariableMngr => Engine.GetService<CustomVariableManager>();
-        private UIManager UIMngr => Engine.GetService<UIManager>();
-        private KeyValuePair<string, string> undoData;
-
-        public override Task ExecuteAsync ()
+        public override Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
-            undoData = new KeyValuePair<string, string>(VariableName, VariableMngr.GetVariableValue(VariableName) ?? string.Empty);
+            var inputUI = Engine.GetService<UIManager>().GetUI<UI.IVariableInputUI>();
+            inputUI?.Show(VariableName, Summary, PredefinedValue, PlayOnSubmit);
 
-            UIMngr.GetUI<UI.IVariableInputUI>()?.Show(VariableName, Summary, PlayOnSubmit);
-
-            return Task.CompletedTask;
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (string.IsNullOrWhiteSpace(undoData.Key)) return Task.CompletedTask;
-
-            UIMngr.GetUI<UI.IVariableInputUI>()?.Hide();
-            VariableMngr.SetVariableValue(undoData.Key, undoData.Value);
-
-            undoData = default;
             return Task.CompletedTask;
         }
     }

@@ -45,7 +45,6 @@ namespace Naninovel.UI
 
         private async void StartNewGameAsync ()
         {
-            Engine.GetService<CustomVariableManager>()?.ResetLocalVariables();
             await stateManager.ResetStateAsync(() => player.PreloadAndPlayAsync(startScriptName));
         }
     }

@@ -23,6 +23,8 @@ namespace Naninovel
             [nameof(CharacterMetadata.MessageColor)] = property => { if (EditedMetadata.UseCharacterColor) EditorGUILayout.PropertyField(property); },
             [nameof(CharacterMetadata.SpeakingTint)] = property => { if (EditedMetadata.HighlightWhenSpeaking) EditorGUILayout.PropertyField(property); },
             [nameof(CharacterMetadata.NotSpeakingTint)] = property => { if (EditedMetadata.HighlightWhenSpeaking) EditorGUILayout.PropertyField(property); },
+            [nameof(CharacterMetadata.HighlightDuration)] = property => { if (EditedMetadata.HighlightWhenSpeaking) EditorGUILayout.PropertyField(property); },
+            [nameof(CharacterMetadata.HighlightEasing)] = property => { if (EditedMetadata.HighlightWhenSpeaking) EditorGUILayout.PropertyField(property); },
             [nameof(CharacterMetadata.MessageSound)] = property => EditorResources.DrawPathPopup(property, AudioConfiguration.DefaultAudioPathPrefix, AudioConfiguration.DefaultAudioPathPrefix, "None (disabled)"),
         };
 
@@ -34,6 +36,7 @@ namespace Naninovel
             {
                 case nameof(SpriteCharacter): return typeof(UnityEngine.Texture2D);
                 case nameof(GenericCharacter): return typeof(CharacterActorBehaviour);
+                case nameof(DicedSpriteCharacter): return typeof(SpriteDicing.DicedSpriteAtlas);
                 default: return null;
             }
         }
@@ -59,7 +62,7 @@ namespace Naninovel
             avatarsEditorExpanded = EditorGUILayout.Foldout(avatarsEditorExpanded, AvatarsEditorContent, true);
             if (!avatarsEditorExpanded) return;
             ResourcesEditor.DrawGUILayout(Configuration.AvatarLoader.PathPrefix, Configuration.AvatarLoader.PathPrefix, null, typeof(Texture2D),
-                "Use `@char CharacterID avatar:%name% in naninovel scripts to assign selected avatar texture for the character.`");
+                "Use `@char CharacterID avatar:%name%` in naninovel scripts to assign selected avatar texture for the character.");
         }
 
         [MenuItem("Naninovel/Resources/Characters")]

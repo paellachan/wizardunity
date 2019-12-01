@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -20,12 +21,16 @@ namespace Naninovel.Commands
     /// ; Same as above, but also positions the character 45% away from the left border 
     /// ; of the screen and 10% away from the bottom border; also makes him look to the left.
     /// @char Sora.Happy look:left pos:45,10
+    /// 
+    /// ; Make Sora appear at the bottom-center and in front of Felix
+    /// @char Sora pos:50,0,-1
+    /// @char Felix pos:,,0
     /// </example>
     [CommandAlias("char")]
-    public class ModifyCharacter : ModifyOrthoActor<ICharacterActor, CharacterState, CharacterManager>
+    public class ModifyCharacter : ModifyOrthoActor<ICharacterActor, CharacterState, CharacterMetadata, CharactersConfiguration, CharacterManager>
     {
         /// <summary>
-        /// ID of the actor to modify and the appearance to set.
+        /// ID of the character to modify and the appearance to set.
         /// When appearance is not provided, will use either a `Default` (is exists) or a random one.
         /// </summary>
         [CommandParameter(NamelessParameterAlias)]
@@ -49,9 +54,9 @@ namespace Naninovel.Commands
 
         private bool autoArrange;
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
-            await base.ExecuteAsync();
+            await base.ExecuteAsync(cancellationToken);
 
             if (AvatarTexturePath is null) // Check if we can map current appearance to an avatar texture path.
             {
@@ -73,47 +78,47 @@ namespace Naninovel.Commands
             }
         }
 
-        protected override async Task ApplyModificationsAsync (ICharacterActor actor, EasingType easingType)
+        protected override async Task ApplyModificationsAsync (ICharacterActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
 
-            tasks.Add(base.ApplyModificationsAsync(actor, easingType));
-            tasks.Add(ApplyLookDirectionModificationAsync(actor, easingType));
+            tasks.Add(base.ApplyModificationsAsync(actor, easingType, cancellationToken));
+            tasks.Add(ApplyLookDirectionModificationAsync(actor, easingType, cancellationToken));
 
             if (autoArrange)
-                tasks.Add(ActorManager.ArrangeCharactersAsync(Duration, easingType));
+                tasks.Add(ActorManager.ArrangeCharactersAsync(Duration, easingType, cancellationToken));
 
             await Task.WhenAll(tasks);
         }
 
-        protected virtual async Task ApplyLookDirectionModificationAsync (ICharacterActor actor, EasingType easingType)
+        protected virtual async Task ApplyLookDirectionModificationAsync (ICharacterActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(LookDirection)) return;
-            if (LookDirection.EqualsFastIgnoreCase("right")) await actor.ChangeLookDirectionAsync(CharacterLookDirection.Right, Duration, easingType);
-            else if (LookDirection.EqualsFastIgnoreCase("left")) await actor.ChangeLookDirectionAsync(CharacterLookDirection.Left, Duration, easingType);
-            else if (LookDirection.EqualsFastIgnoreCase("center")) await actor.ChangeLookDirectionAsync(CharacterLookDirection.Center, Duration, easingType);
+            if (LookDirection.EqualsFastIgnoreCase("right")) await actor.ChangeLookDirectionAsync(CharacterLookDirection.Right, Duration, easingType, cancellationToken);
+            else if (LookDirection.EqualsFastIgnoreCase("left")) await actor.ChangeLookDirectionAsync(CharacterLookDirection.Left, Duration, easingType, cancellationToken);
+            else if (LookDirection.EqualsFastIgnoreCase("center")) await actor.ChangeLookDirectionAsync(CharacterLookDirection.Center, Duration, easingType, cancellationToken);
             else { Debug.LogError("Unsupported value for LookDirection."); return; }
         }
 
-        protected override Task ApplyAppearanceModificationAsync (ICharacterActor actor, EasingType easingType)
+        protected override Task ApplyAppearanceModificationAsync (ICharacterActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             // When adding character on scene, change appearance instantly to prevent bleeding previous one during fade-in.
-            if (!string.IsNullOrEmpty(Appearance) && !actor.IsVisible && IsVisible.HasValue && IsVisible.Value)
+            if (!string.IsNullOrEmpty(Appearance) && !actor.IsVisible && Visible.HasValue && Visible.Value)
             {
                 actor.Appearance = Appearance;
                 return Task.CompletedTask;
             }
 
-            return base.ApplyAppearanceModificationAsync(actor, easingType);
+            return base.ApplyAppearanceModificationAsync(actor, easingType, cancellationToken);
         }
 
-        protected override async Task ApplyVisibilityModificationAsync (ICharacterActor actor, EasingType easingType)
+        protected override async Task ApplyVisibilityModificationAsync (ICharacterActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             // Execute auto-arrange if adding to scene, no position specified and auto-arrange on add is enabled.
-            if (ScenePosition is null && !actor.IsVisible && IsVisible.HasValue && IsVisible.Value && ActorManager.AutoArrangeOnAdd)
+            if (ScenePosition is null && !actor.IsVisible && Visible.HasValue && Visible.Value && ActorManager.AutoArrangeOnAdd)
                 autoArrange = true;
 
-            await base.ApplyVisibilityModificationAsync(actor, easingType);
+            await base.ApplyVisibilityModificationAsync(actor, easingType, cancellationToken);
         }
     } 
 }

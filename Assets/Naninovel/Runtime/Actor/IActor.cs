@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -49,27 +50,27 @@ namespace Naninovel
         /// <summary>
         /// Changes <see cref="Appearance"/> over specified time.
         /// </summary>
-        Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default);
+        Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
         /// <summary>
         /// Changes <see cref="IsVisible"/> over specified time.
         /// </summary>
-        Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default);
+        Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
         /// <summary>
         /// Changes <see cref="Position"/> over specified time.
         /// </summary>
-        Task ChangePositionAsync (Vector3 position, float duration, EasingType easingType = default);
+        Task ChangePositionAsync (Vector3 position, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
         /// <summary>
         /// Changes <see cref="Rotation"/> over specified time.
         /// </summary>
-        Task ChangeRotationAsync (Quaternion rotation, float duration, EasingType easingType = default);
+        Task ChangeRotationAsync (Quaternion rotation, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
         /// <summary>
         /// Changes <see cref="Scale"/> factor over specified time.
         /// </summary>
-        Task ChangeScaleAsync (Vector3 scale, float duration, EasingType easingType = default);
+        Task ChangeScaleAsync (Vector3 scale, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
         /// <summary>
         /// Changes <see cref="TintColor"/> over specified time.
         /// </summary>
-        Task ChangeTintColorAsync (Color tintColor, float duration, EasingType easingType = default);
+        Task ChangeTintColorAsync (Color tintColor, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Loads (if not loaded) and invokes <see cref="Resource.Hold(object)"/> upon all resources required for the specified actor's appearance.

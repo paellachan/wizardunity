@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87497d07515251d4c901e7faf5ab2146, type: 3}
   m_Name: EngineVersion
   m_EditorClassIdentifier: 
-  engineVersion: v1.7.1-beta
-  buildDate: 2019-07-06
+  engineVersion: v1.8.3-beta
+  buildDate: 2019-11-07

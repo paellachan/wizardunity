@@ -75,6 +75,9 @@ namespace Naninovel
 
             if (engineConfig.ShowTitleUI)
                 Engine.GetService<UIManager>()?.GetUI<UI.ITitleUI>()?.Show();
+
+            if (scriptsConfig.ShowNavigatorOnInit)
+                Engine.GetService<ScriptManager>().ShowNavigator();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

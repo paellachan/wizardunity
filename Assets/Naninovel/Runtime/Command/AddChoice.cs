@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine;
 namespace Naninovel.Commands
 {
     /// <summary>
-    /// Adds a choice option to an active (or default) choice handler actor.
+    /// Adds a choice option to a choice handler with the specified ID (or default one).
     /// </summary>
     /// <remarks>
     /// When `goto` parameter is not specified, will continue script execution from the next script line.
@@ -21,11 +22,11 @@ namespace Naninovel.Commands
     /// @stop
     /// 
     /// ; Following example shows how to make an interactive map via `@choice` commands.
-    /// ; For this example, we assume, that inside a `Resources/MapButtons` folder you've stored prefabs with `ChoiceHandlerButton` component attached to their root objects.
-    /// ; Please note, that making a custom choice handler is a more appropriate solution for this, unless you can't (or don't want to) mess with C# scripting.
+    /// ; For this example, we assume, that inside a `Resources/MapButtons` folder you've 
+    /// ; stored prefabs with `ChoiceHandlerButton` component attached to their root objects.
     /// # Map
     /// @back Map
-    /// @hideText
+    /// @hidePrinter
     /// @choice handler:ButtonArea button:MapButtons/Home pos:-300,-300 goto:.HomeScene
     /// @choice handler:ButtonArea button:MapButtons/Shop pos:300,200 goto:.ShopScene
     /// @stop
@@ -39,12 +40,15 @@ namespace Naninovel.Commands
     /// @back Shop
     /// Don't forget about cucumbers!
     /// @goto.Map
+    /// 
+    /// ; You can also set custom variables based on choices.
+    /// @choice "I'm humble, one is enough..." set:score++
+    /// @choice "Two, please." set:score=score+2
+    /// @choice "I'll take the entire stock!" set:karma--;score=999
     /// </example>
     [CommandAlias("choice")]
     public class AddChoice : Command, Command.ILocalizable, Command.IPreloadable
     {
-        public class UndoData { public string ChoiceId, HandlerId, InitialActiveHandlerId; public SetCustomVariable SetAction; }
-
         /// <summary>
         /// Text to show for the choice.
         /// When the text contain spaces, wrap it in double quotes (`"`). 
@@ -65,7 +69,7 @@ namespace Naninovel.Commands
         [CommandParameter("pos", true)]
         public float?[] ButtonPosition { get => GetDynamicParameter<float?[]>(null); set => SetDynamicParameter(value); }
         /// <summary>
-        /// ID of the choice handler to add choice for.
+        /// ID of the choice handler to add choice for. Will use a default handler if not provided.
         /// </summary>
         [CommandParameter("handler", true)]
         public string HandlerId { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
@@ -82,8 +86,6 @@ namespace Naninovel.Commands
         [CommandParameter("set", true)]
         public string SetExpression { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
-        private UndoData undoData = new UndoData();
-
         public async Task HoldResourcesAsync ()
         {
             var mngr = Engine.GetService<ChoiceHandlerManager>();
@@ -99,51 +101,20 @@ namespace Naninovel.Commands
             if (mngr.ActorExists(handlerId)) mngr.GetActor(handlerId).ReleaseResources(this, null);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var mngr = Engine.GetService<ChoiceHandlerManager>();
 
-            undoData.InitialActiveHandlerId = mngr.GetActiveHandler()?.Id;
+            var handlerId = string.IsNullOrEmpty(HandlerId) ? mngr.DefaultHandlerId : HandlerId;
+            var choiceHandler = await mngr.GetOrAddActorAsync(handlerId);
+            if (cancellationToken.IsCancellationRequested) return;
 
-            var choiceHandler = string.IsNullOrEmpty(HandlerId) ? await mngr.GetActiveHandlerOrDefaultAsync() : mngr.GetActor(HandlerId);
-            if (!choiceHandler.IsHandlerActive)
-                await mngr.SetActiveHandlerAsync(choiceHandler.Id);
+            if (!choiceHandler.IsVisible)
+                choiceHandler.ChangeVisibilityAsync(true, Duration, cancellationToken: cancellationToken).WrapAsync();
 
             var buttonPos = ButtonPosition is null ? null : (Vector2?)ArrayUtils.ToVector2(ButtonPosition);
-            var choice = new ChoiceState(ChoiceSummary, ButtonPath, undoData, buttonPos, GotoPath?.Item1, GotoPath?.Item2, SetExpression);
+            var choice = new ChoiceState(ChoiceSummary, ButtonPath, buttonPos, GotoPath?.Item1, GotoPath?.Item2, SetExpression);
             choiceHandler.AddChoice(choice);
-
-            undoData.HandlerId = choiceHandler.Id;
-            undoData.ChoiceId = choice.Id;
-        }
-
-        public override async Task UndoAsync ()
-        {
-            if (undoData.SetAction != null)
-                await undoData.SetAction.UndoAsync();
-
-            if (string.IsNullOrEmpty(undoData.ChoiceId))
-            {
-                undoData = new UndoData();
-                return;
-            }
-
-            var manager = Engine.GetService<ChoiceHandlerManager>();
-
-            if (!string.IsNullOrWhiteSpace(undoData.InitialActiveHandlerId))
-                await manager.SetActiveHandlerAsync(undoData.InitialActiveHandlerId);
-            else manager.DeactivateAllHandlers();
-
-            if (!manager.ActorExists(undoData.HandlerId))
-            {
-                undoData = new UndoData();
-                return;
-            }
-
-            var choiceHandler = manager.GetActor(undoData.HandlerId);
-            choiceHandler.RemoveChoice(undoData.ChoiceId);
-
-            undoData = new UndoData();
         }
     }
 }

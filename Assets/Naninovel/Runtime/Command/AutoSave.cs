@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -13,11 +14,9 @@ namespace Naninovel.Commands
     [CommandAlias("save")]
     public class AutoSave : Command
     {
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             await Engine.GetService<StateManager>()?.QuickSaveAsync();
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
     } 
 }

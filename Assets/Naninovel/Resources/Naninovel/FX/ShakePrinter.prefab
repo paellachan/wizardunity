@@ -46,7 +46,7 @@ MonoBehaviour:
   defaultShakesCount: 2
   defaultShakeDuration: 0.15
   defaultDurationVariation: 0.25
-  defaultShakeAmplitude: 50
-  defaultAmplitudeVariation: 10
+  defaultShakeAmplitude: 0.5
+  defaultAmplitudeVariation: 0.1
   defaultShakeHorizontally: 0
   defaultShakeVertically: 1

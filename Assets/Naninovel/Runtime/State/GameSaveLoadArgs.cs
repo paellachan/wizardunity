@@ -17,16 +17,11 @@ namespace Naninovel
         /// Whether it's a quick save/load operation.
         /// </summary>
         public readonly bool Quick;
-        /// <summary>
-        /// The map where all the game state data is (will be) de-/serialized from/to.
-        /// </summary>
-        public readonly GameStateMap StateMap;
 
-        public GameSaveLoadArgs (string slotId, bool quick, GameStateMap stateMap)
+        public GameSaveLoadArgs (string slotId, bool quick)
         {
             SlotId = slotId;
             Quick = quick;
-            StateMap = stateMap;
         }
     }
 }

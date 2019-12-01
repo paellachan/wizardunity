@@ -69,7 +69,8 @@ namespace Naninovel
             Player.audioOutputMode = VideoAudioOutputMode.Direct;
             Player.loopPointReached += HandleLoopPointReached;
 
-            inputManager.Cancel.OnStart += Stop;
+            if (inputManager?.Cancel != null)
+                inputManager.Cancel.OnStart += Stop;
 
             return Task.CompletedTask;
         }
@@ -84,27 +85,29 @@ namespace Naninovel
         {
             if (IsPlaying) Stop();
             if (Player != null) Player.loopPointReached -= HandleLoopPointReached;
-            if (inputManager != null) inputManager.Cancel.OnStart -= Stop;
+            if (inputManager?.Cancel != null) inputManager.Cancel.OnStart -= Stop;
             videoLoader?.GetAllLoaded()?.ForEach(r => r?.Release(this));
         }
 
         /// <summary>
         /// Plays a movie with the provided name; returns when the playback finishes.
         /// </summary>
-        public async Task PlayAsync (string movieName)
+        public async Task PlayAsync (string movieName, CancellationToken cancellationToken = default)
         {
             if (IsPlaying) Stop();
 
             playedMovieName = movieName;
-            playCTS = new CancellationTokenSource();
+            playCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             OnMoviePlay?.Invoke();
             await waitForFade;
+            if (cancellationToken.IsCancellationRequested) return;
 
             #if UNITY_WEBGL && !UNITY_EDITOR
             Player.url = PathUtils.Combine(Application.streamingAssetsPath, videoLoader.BuildFullPath(movieName)) + ".mp4";
             #else
             var videoClipResource = await videoLoader.LoadAsync(movieName);
+            if (cancellationToken.IsCancellationRequested) return;
             if (!videoClipResource.IsValid) { Debug.LogError($"Failed to load `{movieName}` movie."); Stop(); return; }
             Player.clip = videoClipResource;
             videoClipResource.Hold(this);
@@ -112,6 +115,7 @@ namespace Naninovel
 
             Player.Prepare();
             while (!Player.isPrepared) await waitForEndOfFrame;
+            if (cancellationToken.IsCancellationRequested) return;
             OnMovieTextureReady?.Invoke(Player.texture);
 
             Player.Play();

@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace Naninovel.Commands
     /// @hide ExplosionSprite
     /// </example>
     [CommandAlias("back")]
-    public class ModifyBackground : ModifyOrthoActor<IBackgroundActor, BackgroundState, BackgroundManager>
+    public class ModifyBackground : ModifyOrthoActor<IBackgroundActor, BackgroundState, BackgroundMetadata, BackgroundsConfiguration, BackgroundManager>
     {
         /// <summary>
         /// Appearance to set for the modified background and name of the [transition effect](/guide/background-transition-effects.md) to use.
@@ -83,7 +84,7 @@ namespace Naninovel.Commands
             preloadedCustomDissolveTexture = null;
         }
 
-        protected override async Task ApplyAppearanceModificationAsync (IBackgroundActor actor, EasingType easingType)
+        protected override async Task ApplyAppearanceModificationAsync (IBackgroundActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(Appearance)) return;
 
@@ -100,7 +101,7 @@ namespace Naninovel.Commands
             if (!string.IsNullOrEmpty(CustomDissolveTexturePath) && !ObjectUtils.IsValid(preloadedCustomDissolveTexture))
                 preloadedCustomDissolveTexture = Resources.Load<Texture2D>(CustomDissolveTexturePath);
 
-            await actor.TransitionAppearanceAsync(Appearance, Duration, easingType, transitionType, transitionParams, preloadedCustomDissolveTexture);
+            await actor.TransitionAppearanceAsync(Appearance, Duration, easingType, transitionType, transitionParams, preloadedCustomDissolveTexture, cancellationToken);
         }
     }
 }

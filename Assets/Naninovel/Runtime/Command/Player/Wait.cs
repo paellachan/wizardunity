@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -47,9 +48,15 @@ namespace Naninovel.Commands
         private static InputManager inputManagerCache;
         private static ScriptPlayer scriptPlayerCache;
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             if (scriptPlayer.IsSkipActive) return;
+
+            if (string.IsNullOrEmpty(WaitMode))
+            {
+                LogWarningWithPosition($"`{nameof(WaitMode)}` parameter is not specified, the wait command will do nothing.");
+                return;
+            }
 
             // Waiting for player input.
             if (WaitMode.EqualsFastIgnoreCase(InputLiteral))
@@ -66,8 +73,9 @@ namespace Naninovel.Commands
                 while (Application.isPlaying)
                 {
                     await waitForEndOfFrame;
+                    if (cancellationToken.IsCancellationRequested) return;
                     var waitedEnough = (Time.time - startTime) >= skippableWaitTime;
-                    var inputActivated = inputManager.Continue.StartedDuringFrame || inputManager.Skip.StartedDuringFrame;
+                    var inputActivated = (inputManager?.Continue?.StartedDuringFrame ?? false) || (inputManager?.Skip?.StartedDuringFrame ?? false);
                     if (waitedEnough || inputActivated) break;
                 }
                 scriptPlayer.DisableWaitingForInput();
@@ -82,20 +90,12 @@ namespace Naninovel.Commands
                 {
                     await waitForEndOfFrame;
                     var waitedEnough = (Time.time - startTime) >= waitTime;
-                    if (waitedEnough) break;
+                    if (cancellationToken.IsCancellationRequested || waitedEnough) break;
                 }
                 return;
             }
 
-            Debug.LogWarning($"Failed to determine wait mode for the wait command in script '{ScriptName}' at line #'{LineNumber}'.");
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (WaitMode.EqualsFastIgnoreCase(InputLiteral))
-                scriptPlayer.DisableWaitingForInput();
-
-            return Task.CompletedTask;
+            LogWarningWithPosition($"Failed to resolve value of the `{nameof(WaitMode)}` parameter for the wait command. Check the API reference for list of supported values.");
         }
     } 
 }

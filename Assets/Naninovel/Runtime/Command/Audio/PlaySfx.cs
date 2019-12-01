@@ -1,7 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -28,8 +28,6 @@ namespace Naninovel.Commands
     [CommandAlias("sfx")]
     public class PlaySfx : Command, Command.IPreloadable
     {
-        private struct UndoData { public bool Executed; public List<AudioManager.ClipState> SfxState; }
-
         /// <summary>
         /// Path to the sound effect asset to play.
         /// </summary>
@@ -46,8 +44,6 @@ namespace Naninovel.Commands
         [CommandParameter(optional: true)]
         public bool Loop { get => GetDynamicParameter(false); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
         public async Task HoldResourcesAsync ()
         {
             if (string.IsNullOrWhiteSpace(SfxPath)) return;
@@ -60,34 +56,18 @@ namespace Naninovel.Commands
             Engine.GetService<AudioManager>()?.ReleaseAudioResources(this, SfxPath);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var manager = Engine.GetService<AudioManager>();
-            var allSfxState = manager.CloneAllPlayingSfxState();
-
-            undoData.Executed = true;
-            undoData.SfxState = allSfxState;
-
             if (string.IsNullOrWhiteSpace(SfxPath))
-                await Task.WhenAll(allSfxState.Select(s => PlayOrModifyTrackAsync(manager, s.Path, Volume, Loop, Duration)));
-            else await PlayOrModifyTrackAsync(manager, SfxPath, Volume, Loop, Duration);
+                await Task.WhenAll(manager.PlayedSfx.Select(s => PlayOrModifyTrackAsync(manager, s.Path, Volume, Loop, Duration, cancellationToken)));
+            else await PlayOrModifyTrackAsync(manager, SfxPath, Volume, Loop, Duration, cancellationToken);
         }
 
-        public override async Task UndoAsync ()
+        private static async Task PlayOrModifyTrackAsync (AudioManager mngr, string path, float volume, bool loop, float time, CancellationToken cancellationToken)
         {
-            if (!undoData.Executed) return;
-
-            var manager = Engine.GetService<AudioManager>();
-            await manager.StopAllSfxAsync();
-            await Task.WhenAll(undoData.SfxState.Select(s => PlayOrModifyTrackAsync(manager, s.Path, s.Volume, s.IsLooped, 0)));
-
-            undoData = default;
-        }
-
-        private static async Task PlayOrModifyTrackAsync (AudioManager mngr, string path, float volume, bool loop, float time)
-        {
-            if (mngr.IsSfxPlaying(path)) mngr.ModifySfx(path, volume, loop, time);
-            else await mngr.PlaySfxAsync(path, volume, time, loop);
+            if (mngr.IsSfxPlaying(path)) await mngr.ModifySfxAsync(path, volume, loop, time, cancellationToken);
+            else await mngr.PlaySfxAsync(path, volume, time, loop, cancellationToken);
         }
     } 
 }

@@ -58,7 +58,6 @@ namespace Naninovel
                 navigatorUI = Engine.Instantiate(navigatorPrefab, "ScriptNavigator");
                 navigatorUI.SortingOrder = config.NavigatorSortOrder;
                 navigatorUI.SetIsVisible(false);
-                if (config.ShowNavigatorOnInit) ShowNavigator();
             }
 
             if (string.IsNullOrEmpty(config.StartGameScript))

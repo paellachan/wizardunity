@@ -75,7 +75,7 @@ namespace Naninovel
 
             foreach (var printTextAction in printActions)
             {
-                var fieldId = printTextAction.ActorId;
+                var fieldId = printTextAction.AuthorId;
                 if (string.IsNullOrEmpty(fieldId)) continue;
                 var fieldValue = printTextAction.Text;
                 // When actual value is not set in the document, set ID instead to make it clear which field is missing.
@@ -102,7 +102,7 @@ namespace Naninovel
                 var typeFullName = fieldPath.GetBeforeLast(".") ?? fieldPath;
                 var fieldName = fieldPath.GetAfter(".") ?? fieldPath;
 
-                var type = Type.GetType(typeFullName);
+                var type = ReflectionUtils.ExportedDomainTypes.FirstOrDefault(t => t.FullName.EqualsFast(typeFullName));
                 if (type is null) continue;
 
                 var fieldInfo = type.GetField(fieldName, managedFieldBindings);

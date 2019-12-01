@@ -21,7 +21,7 @@ namespace Naninovel
     {
         /// <summary>
         /// Replaces lines of the <paramref name="sourceScript"/> with the lines from <paramref name="localizationScript"/>, 
-        /// that have equal <see cref="ScriptLine.ContentHash"/>. 
+        /// that have equal <see cref="ScriptLine.LineHash"/>. 
         /// </summary>
         public static void LocalizeScript (Script sourceScript, Script localizationScript)
         {
@@ -33,7 +33,7 @@ namespace Naninovel
             for (int i = 0; i < sourceScript.Lines.Count; i++)
             {
                 var sourceLine = sourceScript.Lines[i];
-                var contentHash = sourceLine.ContentHash;
+                var contentHash = sourceLine.LineHash;
                 if (!localizationTerms.ContainsKey(contentHash)) continue;
 
                 var localizedActionsText = localizationTerms[contentHash].SelectMany(t => ExtractActionsFromLine(t)); 

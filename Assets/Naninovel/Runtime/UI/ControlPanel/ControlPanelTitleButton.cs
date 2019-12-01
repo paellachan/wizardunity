@@ -19,6 +19,12 @@ namespace Naninovel.UI
 
             gameState = Engine.GetService<StateManager>();
             uiManager = Engine.GetService<UIManager>();
+        }
+
+        protected override void Start ()
+        {
+            base.Start();
+
             confirmationUI = uiManager.GetUI<IConfirmationUI>();
         }
 

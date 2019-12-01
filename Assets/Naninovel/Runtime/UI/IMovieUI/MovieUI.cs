@@ -1,21 +1,17 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
-using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Naninovel.UI
 {
-    public class MovieUI : ScriptableUIBehaviour, IMovieUI
+    public class MovieUI : CustomUI, IMovieUI
     {
         [SerializeField] private RawImage movieImage = default;
         [SerializeField] private RawImage fadeImage = default;
 
         private MoviePlayer moviePlayer;
-        private InputManager inputManager;
-
-        public Task InitializeAsync () => Task.CompletedTask;
 
         protected override void Awake ()
         {
@@ -23,7 +19,6 @@ namespace Naninovel.UI
 
             this.AssertRequiredObjects(movieImage, fadeImage);
             moviePlayer = Engine.GetService<MoviePlayer>();
-            inputManager = Engine.GetService<InputManager>();
         }
 
         protected override void OnEnable ()
@@ -33,7 +28,6 @@ namespace Naninovel.UI
             moviePlayer.OnMoviePlay += HandleMoviePlay;
             moviePlayer.OnMovieStop += HandleMovieStop;
             moviePlayer.OnMovieTextureReady += HandleMovieTextureReady;
-            inputManager.AddBlockingUI(this);
         }
 
         protected override void OnDisable ()
@@ -43,7 +37,6 @@ namespace Naninovel.UI
             moviePlayer.OnMoviePlay -= HandleMoviePlay;
             moviePlayer.OnMovieStop -= HandleMovieStop;
             moviePlayer.OnMovieTextureReady -= HandleMovieTextureReady;
-            inputManager.RemoveBlockingUI(this);
         }
 
         private async void HandleMoviePlay ()

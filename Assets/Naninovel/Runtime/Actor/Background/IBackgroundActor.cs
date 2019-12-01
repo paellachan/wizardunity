@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -15,6 +16,6 @@ namespace Naninovel
         /// Changes background appearance over specified time with specified transition effect.
         /// </summary>
         Task TransitionAppearanceAsync (string appearance, float duration, EasingType easingType = default, 
-            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null);
+            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null, CancellationToken cancellationToken = default);
     } 
 }

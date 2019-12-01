@@ -2,6 +2,7 @@
 
 using Naninovel.Commands;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -34,13 +35,13 @@ namespace Naninovel.FX
             velocityModule.yMultiplier *= parameters?.ElementAtOrDefault(3)?.AsInvariantFloat() ?? defaultVelocityY;
         }
 
-        public async Task AwaitSpawnAsync ()
+        public async Task AwaitSpawnAsync (CancellationToken cancellationToken = default)
         {
             if (intensityTweener.IsRunning)
                 intensityTweener.CompleteInstantly();
 
             var tween = new FloatTween(emissionModule.rateOverTimeMultiplier, Intensity, FadeInTime, SetIntensity);
-            await intensityTweener.RunAsync(tween);
+            await intensityTweener.RunAsync(tween, cancellationToken);
         }
 
         public void SetDestroyParameters (string[] parameters)
@@ -48,13 +49,13 @@ namespace Naninovel.FX
             FadeOutTime = Mathf.Abs(parameters?.ElementAtOrDefault(0)?.AsInvariantFloat() ?? defaultFadeOutTime);
         }
 
-        public async Task AwaitDestroyAsync ()
+        public async Task AwaitDestroyAsync (CancellationToken cancellationToken = default)
         {
             if (intensityTweener.IsRunning)
                 intensityTweener.CompleteInstantly();
 
             var tween = new FloatTween(emissionModule.rateOverTimeMultiplier, 0, FadeOutTime, SetIntensity);
-            await intensityTweener.RunAsync(tween);
+            await intensityTweener.RunAsync(tween, cancellationToken);
         }
 
         private void Awake ()

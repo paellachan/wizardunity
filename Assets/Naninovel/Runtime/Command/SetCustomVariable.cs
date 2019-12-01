@@ -1,6 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -19,6 +19,9 @@ namespace Naninovel.Commands
     /// Custom variables are stored in **local scope** by default. This means, that if you assign some variable in the course of gameplay 
     /// and player starts a new game or loads another saved game slot, where that variable wasn't assigned — the value will be lost. 
     /// If you wish to store the variable in **global scope** instead, prepend `G_` or `g_` to its name, eg: `G_FinishedMainRoute` or `g_total_score`.
+    /// <br/><br/>
+    /// In case variable name starts with `T_` or `t_` it's considered a reference to a value stored in 'Script' [managed text](/guide/managed-text.md) document. 
+    /// Such variables can't be assiged and mostly used for referencing localizable text values.
     /// <br/><br/>
     /// You can get and set custom variables in C# scripts via `CustomVariableManager` [engine service](/guide/engine-services.md).
     /// </remarks>
@@ -40,6 +43,12 @@ namespace Naninovel.Commands
     /// 
     /// ; Get a random integer between -100 and 100, then raise to power of 4 and assign to `result` variable
     /// @set "result = Pow(Random(-100, 100), 4)"
+    /// 
+    /// ; If `foo` is a number, add 1 to its value
+    /// @set foo++
+    /// 
+    /// ; If `foo` is a number, subtract 1 from its value
+    /// @set foo--
     /// 
     /// ; Assign `foo` variable value of the `bar` variable, which is `Hello World!`.
     /// ; Notice, that `bar` variable should actually exist, otherwise `bar` plain text value will be assigned instead.
@@ -71,25 +80,31 @@ namespace Naninovel.Commands
         /// <br/><br/>
         /// The expression should be in the following format: `VariableName=ExpressionBody`, where `VariableName` is the name of the custom 
         /// variable to assign and `ExpressionBody` is a [script expression](/guide/script-expressions.md), the result of which should be assigned to the variable.
+        /// <br/><br/>
+        /// It's also possible to use increment and decrement unary operators, eg: `@set foo++`, `@set foo--`.
         /// </summary>
         [CommandParameter(alias: NamelessParameterAlias)]
         public string Expression { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
         private const string assignmentLiteral = "=";
+        private const string incrementLiteral = "++";
+        private const string decrementLiteral = "--";
         private const string separatorLiteral = ";";
 
-        private List<KeyValuePair<string, string>> undoData = new List<KeyValuePair<string, string>>();
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
-            undoData.Clear();
-
             var variableManager = Engine.GetService<CustomVariableManager>();
             var saveStatePending = false;
             var expressions = Expression.Split(separatorLiteral[0]);
-            foreach (var expression in expressions)
+            for (int i = 0; i < expressions.Length; i++)
             {
+                var expression = expressions[i];
                 if (string.IsNullOrEmpty(expression)) continue;
+
+                if (expression.EndsWithFast(incrementLiteral))
+                    expression = expression.Replace(incrementLiteral, $"={expression.GetBefore(incrementLiteral)}+1");
+                else if (expression.EndsWithFast(decrementLiteral))
+                    expression = expression.Replace(decrementLiteral, $"={expression.GetBefore(decrementLiteral)}-1");
 
                 var variableName = expression.GetBefore(assignmentLiteral)?.TrimFull();
                 var expressionBody = expression.GetAfterFirst(assignmentLiteral)?.TrimFull();
@@ -102,34 +117,12 @@ namespace Naninovel.Commands
                 var result = ExpressionEvaluator.Evaluate<string>(expressionBody, LogErrorMsg);
                 if (result is null) continue;
 
-                undoData.Add(new KeyValuePair<string, string>(variableName, variableManager.GetVariableValue(variableName) ?? string.Empty));
-
                 variableManager.SetVariableValue(variableName, result);
                 saveStatePending = saveStatePending || variableManager.IsGlobalVariable(variableName);
             }
 
             if (saveStatePending)
                 await Engine.GetService<StateManager>().SaveGlobalStateAsync();
-        }
-
-        public override async Task UndoAsync ()
-        {
-            if (undoData.Count == 0) return;
-
-            var variableManager = Engine.GetService<CustomVariableManager>();
-            var saveStatePending = false;
-
-            foreach (var kv in undoData)
-            {
-                variableManager.SetVariableValue(kv.Key, kv.Value);
-                saveStatePending = saveStatePending || variableManager.IsGlobalVariable(kv.Key);
-            }
-
-            if (saveStatePending)
-                await Engine.GetService<StateManager>().SaveGlobalStateAsync();
-
-            undoData.Clear();
-            return;
         }
 
         private void LogErrorMsg (string desc = null) => Debug.LogError($"Failed to evaluate set expression `{Expression}` at `{ScriptName}` script at line #{LineNumber}. {desc ?? string.Empty}");

@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 
@@ -30,7 +31,7 @@ namespace Naninovel.Commands
         [CommandParameter(alias: NamelessParameterAlias)]
         public Named<string> Path { get => GetDynamicParameter<Named<string>>(null); set => SetDynamicParameter(value); }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var player = Engine.GetService<ScriptPlayer>();
 
@@ -47,10 +48,19 @@ namespace Naninovel.Commands
             // Load another script and start playing from label.
             var stateManager = Engine.GetService<StateManager>();
             if (stateManager.ResetStateOnLoad)
-                await stateManager?.ResetStateAsync(() => player.PreloadAndPlayAsync(scriptName, label: labelName));
+            {
+                var varsManager = Engine.GetService<CustomVariableManager>();
+                var localVars = varsManager.GetAllLocalVariables();
+                await stateManager?.ResetStateAsync(
+                    () => { // Persist the local vars through the state reset.
+                        foreach (var kv in localVars)
+                            varsManager.SetVariableValue(kv.Key, kv.Value);
+                        return Task.CompletedTask;
+                    },
+                    () => player.PreloadAndPlayAsync(scriptName, label: labelName)
+                );
+            }
             else await player.PreloadAndPlayAsync(scriptName, label: labelName);
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
     } 
 }

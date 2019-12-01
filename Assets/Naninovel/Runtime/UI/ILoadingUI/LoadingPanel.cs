@@ -24,8 +24,10 @@ namespace Naninovel.UI
         {
             base.OnEnable();
 
-            stateManager.OnLoadStarted += Show;
-            stateManager.OnLoadFinished += Hide;
+            stateManager.OnGameLoadStarted += HandleLoadStarted;
+            stateManager.OnGameLoadFinished += HandleLoadFinished;
+            stateManager.OnResetStarted += Show;
+            stateManager.OnResetFinished += Hide;
             inputManager.AddBlockingUI(this);
         }
 
@@ -33,9 +35,17 @@ namespace Naninovel.UI
         {
             base.OnDisable();
 
-            stateManager.OnLoadStarted -= Show;
-            stateManager.OnLoadFinished -= Hide;
-            inputManager.RemoveBlockingUI(this);
+            if (stateManager != null)
+            {
+                stateManager.OnGameLoadStarted -= HandleLoadStarted;
+                stateManager.OnGameLoadFinished -= HandleLoadFinished;
+                stateManager.OnResetStarted -= Show;
+                stateManager.OnResetFinished -= Hide;
+            }
+            inputManager?.RemoveBlockingUI(this);
         }
+
+        private void HandleLoadStarted (GameSaveLoadArgs args) => Show();
+        private void HandleLoadFinished (GameSaveLoadArgs args) => Hide();
     }
 }

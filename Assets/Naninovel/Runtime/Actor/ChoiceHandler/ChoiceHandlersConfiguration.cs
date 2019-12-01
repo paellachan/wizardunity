@@ -5,9 +5,12 @@ using UnityEngine;
 namespace Naninovel
 {
     [System.Serializable]
-    public class ChoiceHandlersConfiguration : ActorManagerConfiguration
+    public class ChoiceHandlersConfiguration : ActorManagerConfiguration<ChoiceHandlerMetadata>
     {
         public const string DefaultChoiceHandlersPathPrefix = "ChoiceHandlers";
+
+        public override ChoiceHandlerMetadata DefaultActorMetadata => DefaultMetadata;
+        public override ActorMetadataMap<ChoiceHandlerMetadata> ActorMetadataMap => Metadata;
 
         [Tooltip("ID of the choice handler to use by default.")]
         public string DefaultHandlerId = "ButtonList";

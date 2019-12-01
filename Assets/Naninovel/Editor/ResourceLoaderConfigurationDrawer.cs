@@ -19,7 +19,12 @@ namespace Naninovel
             public int LastSelectedIndex;
         }
 
-        private static readonly GUIContent listContent = new GUIContent("Providers List", "Providers to be used when loading resources, in order of priority.");
+        private static readonly GUIContent listContent = new GUIContent("Providers List", "Provider types to use, in order." +
+            "\n\nAvailable options:" +
+            "\n • Addressable — For assets managed via the Addressable Asset System." +
+            "\n • Project — For assets stored in project's `Resources` folders." +
+            "\n • Local — For assets stored on a local file system." +
+            "\n • GoogleDrive — For assets stored remotely on a Google Drive account.");
 
         private Dictionary<string, DrawerState> stateMap = new Dictionary<string, DrawerState>();
         private ReorderableList reorderableList;

@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -15,17 +16,13 @@ namespace Naninovel.Commands
     /// </example>
     public class ShowUI : Command
     {
-        private struct UndoData { public bool Executed; public string UIPrefabName; }
-
         /// <summary>
         /// Name of the managed UI prefab to make visible.
         /// </summary>
         [CommandParameter(NamelessParameterAlias)]
         public string UIPrefabName { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
-        public override Task ExecuteAsync ()
+        public override Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var uiManager = Engine.GetService<UIManager>();
             var ui = uiManager.GetUI(UIPrefabName);
@@ -36,26 +33,8 @@ namespace Naninovel.Commands
                 return Task.CompletedTask;
             }
 
-            undoData.Executed = true;
-            undoData.UIPrefabName = UIPrefabName;
-
             ui.Show();
 
-            return Task.CompletedTask;
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            var uiManager = Engine.GetService<UIManager>();
-            var ui = uiManager.GetUI(undoData.UIPrefabName);
-
-            if (ui is null)
-                Debug.LogWarning($"Failed to undo {nameof(ShowUI)} script command: managed UI with prefab name `{undoData.UIPrefabName}` not found.");
-            else ui.IsVisible = false;
-
-            undoData = default;
             return Task.CompletedTask;
         }
     }

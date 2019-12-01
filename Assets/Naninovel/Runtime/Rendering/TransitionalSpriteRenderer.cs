@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -69,7 +70,7 @@ namespace Naninovel
         }
 
         public async Task TransitionToAsync (Texture texture, float duration, EasingType easingType = default, 
-            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null)
+            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null, CancellationToken cancellationToken = default)
         {
             if (transitionType.HasValue)
             {
@@ -92,29 +93,29 @@ namespace Naninovel
                 TransitionTexture = texture;
                 var tween = new FloatTween(TransitionProgress, 1, duration, value => TransitionProgress = value, false, easingType);
                 if (transitionTweener.IsRunning) transitionTweener.CompleteInstantly();
-                await transitionTweener.RunAsync(tween);
+                await transitionTweener.RunAsync(tween, cancellationToken);
                 MainTexture = TransitionTexture;
                 TransitionProgress = 0;
             }
         }
 
-        public async Task TintToAsync (Color color, float duration, EasingType easingType = default)
+        public async Task TintToAsync (Color color, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             if (colorTweener.IsRunning) colorTweener.CompleteInstantly();
             var tween = new ColorTween(TintColor, color, ColorTweenMode.All, duration, value => TintColor = value, false, easingType);
-            await colorTweener.RunAsync(tween);
+            await colorTweener.RunAsync(tween, cancellationToken);
         }
 
-        public async Task FadeToAsync (float opacity, float duration, EasingType easingType = default)
+        public async Task FadeToAsync (float opacity, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             if (fadeTweener.IsRunning) fadeTweener.CompleteInstantly();
             var tween = new FloatTween(Opacity, opacity, duration, value => Opacity = value, false, easingType);
-            await fadeTweener.RunAsync(tween);
+            await fadeTweener.RunAsync(tween, cancellationToken);
         }
 
-        public async Task FadeOutAsync (float duration) => await FadeToAsync(0, duration);
+        public async Task FadeOutAsync (float duration, EasingType easingType = default, CancellationToken cancellationToken = default) => await FadeToAsync(0, duration, easingType, cancellationToken);
 
-        public async Task FadeInAsync (float duration) => await FadeToAsync(1, duration);
+        public async Task FadeInAsync (float duration, EasingType easingType = default, CancellationToken cancellationToken = default) => await FadeToAsync(1, duration, easingType, cancellationToken);
 
         private static void InitializeSharedResources ()
         {

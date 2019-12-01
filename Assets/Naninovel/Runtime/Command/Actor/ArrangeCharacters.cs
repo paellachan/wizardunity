@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -23,8 +24,6 @@ namespace Naninovel.Commands
     [CommandAlias("arrange")]
     public class ArrangeCharacters : Command
     {
-        private struct UndoData { public string Id; public Vector3 Position; public CharacterLookDirection LookDirection; }
-
         /// <summary>
         /// A collection of character ID to scene X-axis position (relative to the left screen border, in percents) named values.
         /// Position 0 relates to the left border and 100 to the right border of the screen; 50 is the center.
@@ -32,17 +31,14 @@ namespace Naninovel.Commands
         [CommandParameter(NamelessParameterAlias, true)]
         public Named<float>[] CharacterPositions { get => GetDynamicParameter<Named<float>[]>(null); set => SetDynamicParameter(value); }
 
-        private List<UndoData> undoData;
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var manager = Engine.GetService<CharacterManager>();
-            undoData = manager.GetAllActors().Select(a => new UndoData { Id = a.Id, Position = a.Position, LookDirection = a.LookDirection }).ToList();
 
             // When positions are not specified execute auto arrange.
             if (CharacterPositions is null || CharacterPositions.Length == 0)
             {
-                await manager.ArrangeCharactersAsync(Duration, EasingType.SmoothStep);
+                await manager.ArrangeCharactersAsync(Duration, EasingType.SmoothStep, cancellationToken);
                 return;
             }
 
@@ -60,8 +56,8 @@ namespace Naninovel.Commands
                 }
                 var newPosX = manager.SceneToWorldSpace(new Vector2(posX, 0)).x;
                 var newDir = manager.LookAtOriginDirection(newPosX);
-                arrangeTasks.Add(actor.ChangeLookDirectionAsync(newDir, Duration, EasingType.SmoothStep));
-                arrangeTasks.Add(actor.ChangePositionXAsync(newPosX, Duration, EasingType.SmoothStep));
+                arrangeTasks.Add(actor.ChangeLookDirectionAsync(newDir, Duration, EasingType.SmoothStep, cancellationToken));
+                arrangeTasks.Add(actor.ChangePositionXAsync(newPosX, Duration, EasingType.SmoothStep, cancellationToken));
             }
 
             // Sorting by z in order of declaration (first is bottom).
@@ -84,28 +80,6 @@ namespace Naninovel.Commands
             }
 
             await Task.WhenAll(arrangeTasks);
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (undoData is null || undoData.Count == 0)
-                return Task.CompletedTask;
-
-            var manager = Engine.GetService<CharacterManager>();
-            foreach (var data in undoData)
-            {
-                var actor = manager.GetActor(data.Id);
-                if (actor is null)
-                {
-                    Debug.LogWarning($"Actor `{actor.Id}` not found while undoing `{typeof(ArrangeCharacters).Name}` task.");
-                    continue;
-                }
-                actor.Position = data.Position;
-                actor.LookDirection = data.LookDirection;
-            }
-
-            undoData = null;
-            return Task.CompletedTask;
         }
     }
 }

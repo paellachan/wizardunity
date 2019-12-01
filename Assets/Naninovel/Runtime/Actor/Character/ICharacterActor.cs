@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 
@@ -18,6 +19,6 @@ namespace Naninovel
         /// <summary>
         /// Changes character look direction over specified time.
         /// </summary>
-        Task ChangeLookDirectionAsync (CharacterLookDirection lookDirection, float duration, EasingType easingType = default);
+        Task ChangeLookDirectionAsync (CharacterLookDirection lookDirection, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
     } 
 }

@@ -7,6 +7,8 @@ namespace Naninovel.UI
 {
     public class DebugInfoGUI : MonoBehaviour
     {
+        private const int windowId = 0;
+
         public static KeyCode PreviousKey { get; set; } = KeyCode.LeftArrow;
         public static KeyCode NextKey { get; set; } = KeyCode.RightArrow;
         public static KeyCode PlayKey { get; set; } = KeyCode.UpArrow;
@@ -23,10 +25,7 @@ namespace Naninovel.UI
         {
             if (!initialized)
             {
-                var hostObject = new GameObject("NaninovelDebugInfoGUI");
-                hostObject.hideFlags = HideFlags.HideAndDontSave;
-                DontDestroyOnLoad(hostObject);
-                hostObject.AddComponent<DebugInfoGUI>();
+                Engine.CreateObject<DebugInfoGUI>(nameof(DebugInfoGUI));
                 initialized = true;
             }
             show = !show;
@@ -51,8 +50,10 @@ namespace Naninovel.UI
 
         private void Update ()
         {
-            if (Input.GetKeyDown(PreviousKey)) player.SelectPreviousAsync().WrapAsync();
-            if (Input.GetKeyDown(NextKey)) player.SelectNextAsync().WrapAsync();
+            if (!show) return;
+
+            if (Input.GetKeyDown(PreviousKey)) player.RewindToPreviousCommandAsync(resumePlayback: false).WrapAsync();
+            if (Input.GetKeyDown(NextKey)) player.RewindToNextCommandAsync(resumePlayback: false).WrapAsync();
             if (Input.GetKeyDown(PlayKey)) player.Play();
             if (Input.GetKeyDown(StopKey)) player.Stop();
         }
@@ -61,7 +62,7 @@ namespace Naninovel.UI
         {
             if (!show) return;
 
-            windowRect = GUI.Window(0, windowRect, DrawWindow, 
+            windowRect = GUI.Window(windowId, windowRect, DrawWindow, 
                 string.IsNullOrEmpty(lastActionInfo) ? $"Naninovel ver. {version.Version}" : lastActionInfo);
         }
 
@@ -79,15 +80,15 @@ namespace Naninovel.UI
 
                 GUILayout.FlexibleSpace();
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("<< previous")) player.SelectPreviousAsync().WrapAsync();
-                if (GUILayout.Button("next >>")) player.SelectNextAsync().WrapAsync();
+                if (GUILayout.Button("<< previous")) player.RewindToPreviousCommandAsync(resumePlayback: false).WrapAsync();
+                if (GUILayout.Button("next >>")) player.RewindToNextCommandAsync(resumePlayback: false).WrapAsync();
                 GUILayout.EndHorizontal();
                 if (!player.IsPlaying && GUILayout.Button("Play")) player.Play();
                 if (player.IsPlaying && GUILayout.Button("Stop")) player.Stop();
-                if (GUILayout.Button("Close window")) show = false;
+                if (GUILayout.Button("Close Window")) show = false;
             }
 
-            GUI.DragWindow(new Rect(0, 0, 10000, 20));
+            GUI.DragWindow();
         }
 
         private void HandleActionExecuted (Commands.Command command)

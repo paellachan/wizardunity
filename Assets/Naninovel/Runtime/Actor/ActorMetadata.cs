@@ -5,8 +5,9 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// Represents data required to construct and initialize a <see cref="IActor"/>.
+    /// Represents serializable data required to construct and initialize a <see cref="IActor"/>.
     /// </summary>
+    [System.Serializable]
     public abstract class ActorMetadata
     {
         public string Guid => guid;

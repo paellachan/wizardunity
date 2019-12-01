@@ -10,10 +10,6 @@ namespace Naninovel
     public interface IChoiceHandlerActor : IActor
     {
         /// <summary>
-        /// Whether the choice handler is active and forces user to select a choice.
-        /// </summary>
-        bool IsHandlerActive { get; set; }
-        /// <summary>
         /// Currently added options to choose from.
         /// </summary>
         IEnumerable<ChoiceState> Choices { get; }

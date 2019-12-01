@@ -14,7 +14,8 @@ namespace Naninovel.UI
         /// </summary>
         /// <param name="variableName">Name of custom variable to assign the input value to.</param>
         /// <param name="summary">Summary text to show in the UI.</param>
+        /// <param name="predefinedValue">A predefined value to set for the input field.</param>
         /// <param name="playOnSubmit">Whether to invoke <see cref="ScriptPlayer.Play()"/> on submit.</param>
-        void Show (string variableName, string summary, bool playOnSubmit);
+        void Show (string variableName, string summary, string predefinedValue, bool playOnSubmit);
     }
 }

@@ -1,7 +1,9 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -31,9 +33,11 @@ namespace Naninovel
             }
 
             public float OrthoSize = -1f;
-            public Vector2 Offset = Vector2.zero;
+            public Vector3 Offset = Vector3.zero;
             public float Rotation = 0f;
             public float Zoom = 0f;
+            public bool Orthographic = true;
+            public CameraLookController.State LookMode = default;
             public CameraComponent[] CameraComponents;
         }
 
@@ -61,10 +65,11 @@ namespace Naninovel
         public float PixelsPerUnit => ReferenceResolution.y / (MaxOrthoSize * 2f);
         public Vector2 ReferenceSize => ReferenceResolution / PixelsPerUnit;
         public EasingType DefaultEasintType => config.DefaultEasing;
+        public Vector3 InitialPosition => config.InitialPosition;
         /// <summary>
-        /// Local camera position offset in units by X and Y axis.
+        /// Local camera position offset in units by X and Y axis relative to the initial position set in the configuration.
         /// </summary>
-        public Vector2 Offset
+        public Vector3 Offset
         {
             get => offset;
             set { CompleteOffsetTween(); offset = value; ApplyOffset(value); }
@@ -78,34 +83,45 @@ namespace Naninovel
             set { CompleteRotationTween(); rotation = value; ApplyRotation(value); }
         }
         /// <summary>
-        /// Relatize camera zoom (orthographic size scale), in 0.0 to 1.0 range.
+        /// Relatize camera zoom (orthographic size or FOV depending on <see cref="Orthographic"/>), in 0.0 to 1.0 range.
         /// </summary>
         public float Zoom
         {
             get => zoom;
             set { CompleteZoomTween(); zoom = value; ApplyZoom(value); }
         }
-
         /// <summary>
-        /// Current camera orthographic size. Use this property to accommodate <see cref="Zoom"/> when setting and filter it-out when getting the value.
+        /// Whether the camera should render in orthographic (true) or perspective (false) mode.
         /// </summary>
-        protected float OrthoSize { get => orthoSize; set { ApplyOrthoSizeZoomAware(value, Zoom); orthoSize = value; } }
+        public bool Orthographic
+        {
+            get => Camera.orthographic;
+            set { Camera.orthographic = value; Zoom = Zoom; }
+        }
+        /// <summary>
+        /// Current camera orthographic size. Use setter of this property instead of the camera's ortho size to respect current zoom level.
+        /// </summary>
+        public float OrthoSize { get => orthoSize; set { ApplyOrthoSizeZoomAware(value, Zoom); orthoSize = value; } }
 
         private readonly CameraConfiguration config;
+        private readonly InputManager inputManager;
+        private readonly IEngineBehaviour engineBehaviour;
+        private readonly RenderTexture thumbnailRenderTexture;
+        private readonly List<MonoBehaviour> cameraComponentsCache = new List<MonoBehaviour>();
+        private CameraLookController lookController;
         private ProxyBehaviour proxyBehaviour;
-        private IEngineBehaviour engineBehaviour;
-        private RenderTexture thumbnailRenderTexture;
         private float lastAspect;
         private float orthoSize;
-        private Vector2 offset = Vector2.zero;
+        private Vector3 offset = Vector3.zero;
         private float rotation = 0f, zoom = 0f;
         private Tweener<VectorTween> offsetTweener;
         private Tweener<FloatTween> rotationTweener, zoomTweener;
         private int uiLayer;
 
-        public CameraManager (CameraConfiguration config, IEngineBehaviour engineBehaviour)
+        public CameraManager (CameraConfiguration config, InputManager inputManager, IEngineBehaviour engineBehaviour)
         {
             this.config = config;
+            this.inputManager = inputManager;
             this.engineBehaviour = engineBehaviour;
 
             thumbnailRenderTexture = new RenderTexture(config.ThumbnailResolution.x, config.ThumbnailResolution.y, 24);
@@ -123,8 +139,8 @@ namespace Naninovel
             {
                 Camera = Engine.CreateObject<Camera>(nameof(CameraManager));
                 Camera.depth = 0;
-                Camera.orthographic = true;
                 Camera.backgroundColor = new Color32(35, 31, 32, 255);
+                Camera.orthographic = config.Orthographic;
                 if (!UsingUICamera)
                     Camera.allowHDR = false; // Otherwise text artifacts appear when printing.
                 if (Engine.OverrideObjectsLayer) // When culling is enabled, render only the engine object and UI (when not using UI camera) layers.
@@ -155,46 +171,71 @@ namespace Naninovel
             zoomTweener = new Tweener<FloatTween>(proxyBehaviour);
 
             lastAspect = ScreenAspect;
-            CorrectOrthoSize(lastAspect);
+            if (config.AutoCorrectOrthoSize)
+                CorrectOrthoSize(lastAspect);
+            else OrthoSize = config.DefaultOrthoSize;
+
+            lookController = new CameraLookController(this, inputManager.CameraLookX, inputManager.CameraLookY);
 
             engineBehaviour.OnBehaviourLateUpdate += MonitorAspect;
+            engineBehaviour.OnBehaviourUpdate += lookController.Update;
+
             return Task.CompletedTask;
         }
 
-        public void ResetService () { }
+        public void ResetService ()
+        {
+            lookController.Enabled = false;
+            Offset = Vector3.zero;
+            Rotation = 0f;
+            Zoom = 0f;
+            Orthographic = config.Orthographic;
+        }
 
         public void DestroyService ()
         {
             engineBehaviour.OnBehaviourLateUpdate -= MonitorAspect;
+            engineBehaviour.OnBehaviourUpdate -= lookController.Update;
 
-            if (thumbnailRenderTexture)
-                UnityEngine.Object.Destroy(thumbnailRenderTexture);
-            if (Camera && Camera.gameObject)
-                UnityEngine.Object.Destroy(Camera.gameObject);
-            if (UICamera && UICamera.gameObject)
-                UnityEngine.Object.Destroy(UICamera.gameObject);
+            ObjectUtils.DestroyOrImmediate(thumbnailRenderTexture);
+            if (ObjectUtils.IsValid(Camera))
+                ObjectUtils.DestroyOrImmediate(Camera.gameObject);
+            if (ObjectUtils.IsValid(UICamera))
+                ObjectUtils.DestroyOrImmediate(UICamera.gameObject);
         }
 
         public Task SaveServiceStateAsync (GameStateMap stateMap)
         {
+            Camera.gameObject.GetComponents(cameraComponentsCache);
             var gameState = new GameState() {
                 OrthoSize = OrthoSize,
                 Offset = Offset,
                 Rotation = Rotation,
                 Zoom = Zoom,
-                CameraComponents = Camera.gameObject.GetComponents<MonoBehaviour>().Select(c => new GameState.CameraComponent(c)).ToArray()
+                Orthographic = Orthographic,
+                LookMode = lookController.GetState(),
+                // Why one? Camera is not a MonoBehaviour, so only count ProxyBehaviour; others are considered to be custom effect.
+                CameraComponents = cameraComponentsCache.Count > 1 ? cameraComponentsCache.Select(c => new GameState.CameraComponent(c)).ToArray() : null
             };
-            stateMap.SerializeObject(gameState);
+            stateMap.SetState(gameState);
             return Task.CompletedTask;
         }
 
         public Task LoadServiceStateAsync (GameStateMap stateMap)
         {
-            var state = stateMap.DeserializeObject<GameState>() ?? new GameState();
+            var state = stateMap.GetState<GameState>();
+            if (state is null)
+            {
+                ResetService();
+                return Task.CompletedTask;
+            }
+
             if (state.OrthoSize > 0) OrthoSize = state.OrthoSize;
             Offset = state.Offset;
             Rotation = state.Rotation;
             Zoom = state.Zoom;
+            Orthographic = state.Orthographic;
+            SetLookMode(state.LookMode.Enabled, state.LookMode.Zone, state.LookMode.Speed, state.LookMode.Gravity);
 
             if (state.CameraComponents != null)
                 foreach (var compState in state.CameraComponents)
@@ -212,6 +253,18 @@ namespace Naninovel
             Screen.SetResolution(resolution.x, resolution.y, screenMode, refreshRate);
         }
 
+        /// <summary>
+        /// Activates/disables camera look mode, when player can offset the main camera with input devices 
+        /// (eg, by moving a mouse or using gamepad analog stick).
+        /// </summary>
+        public void SetLookMode (bool enabled, Vector2 lookZone, Vector2 lookSpeed, bool gravity)
+        {
+            lookController.Enabled = enabled;
+            lookController.LookZone = lookZone;
+            lookController.LookSpeed = lookSpeed;
+            lookController.Gravity = gravity;
+        }
+
         public Texture2D CaptureThumbnail ()
         {
             if (config.HideUIInThumbnails)
@@ -222,6 +275,11 @@ namespace Naninovel
             var saveLoadUIWasVisible = saveLoadUI?.IsVisible;
             if (saveLoadUIWasVisible.HasValue && saveLoadUIWasVisible.Value)
                 saveLoadUI.IsVisible = false;
+
+            // Confirmation UI may still be visible here (due to a fade-out time); force-hide it.
+            var confirmUI = Engine.GetService<UIManager>()?.GetUI<UI.IConfirmationUI>();
+            var confirmUIWasVisible = confirmUI?.IsVisible ?? false;
+            if (confirmUI != null) confirmUI.IsVisible = false;
 
             var initialRenderTexture = Camera.targetTexture;
             Camera.targetTexture = thumbnailRenderTexture;
@@ -238,9 +296,11 @@ namespace Naninovel
 
             var thumbnail = thumbnailRenderTexture.ToTexture2D();
 
-            // Restore the save-load menu in case we hid it.
+            // Restore the save-load menu and confirmation UI in case we hid them.
             if (saveLoadUIWasVisible.HasValue && saveLoadUIWasVisible.Value)
                 saveLoadUI.IsVisible = true;
+            if (confirmUIWasVisible)
+                confirmUI.IsVisible = true;
 
             if (config.HideUIInThumbnails)
                 RenderUI = true;
@@ -248,34 +308,46 @@ namespace Naninovel
             return thumbnail;
         }
 
-        public async Task ChangeOffsetAsync (Vector2 offset, float duration, EasingType easingType = default)
+        public async Task ChangeOffsetAsync (Vector3 offset, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompleteOffsetTween();
-            var currentOffset = this.offset;
-            this.offset = offset;
 
-            var tween = new VectorTween(currentOffset, offset, duration, ApplyOffset, false, easingType);
-            await offsetTweener.RunAsync(tween);
+            if (duration > 0)
+            {
+                var currentOffset = this.offset;
+                this.offset = offset;
+                var tween = new VectorTween(currentOffset, offset, duration, ApplyOffset, false, easingType);
+                await offsetTweener.RunAsync(tween, cancellationToken);
+            }
+            else Offset = offset;
         }
 
-        public async Task ChangeRotationAsync (float rotation, float duration, EasingType easingType = default)
+        public async Task ChangeRotationAsync (float rotation, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompleteRotationTween();
-            var currentRotation = this.rotation;
-            this.rotation = rotation;
 
-            var tween = new FloatTween(currentRotation, rotation, duration, ApplyRotation, false, easingType);
-            await rotationTweener.RunAsync(tween);
+            if (duration > 0)
+            {
+                var currentRotation = this.rotation;
+                this.rotation = rotation;
+                var tween = new FloatTween(currentRotation, rotation, duration, ApplyRotation, false, easingType);
+                await rotationTweener.RunAsync(tween, cancellationToken);
+            }
+            else Rotation = rotation;
         }
 
-        public async Task ChangeZoomAsync (float zoom, float duration, EasingType easingType = default)
+        public async Task ChangeZoomAsync (float zoom, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompleteZoomTween();
-            var currentZoom = this.zoom;
-            this.zoom = zoom;
 
-            var tween = new FloatTween(currentZoom, zoom, duration, ApplyZoom, false, easingType);
-            await zoomTweener.RunAsync(tween);
+            if (duration > 0)
+            {
+                var currentZoom = this.zoom;
+                this.zoom = zoom;
+                var tween = new FloatTween(currentZoom, zoom, duration, ApplyZoom, false, easingType);
+                await zoomTweener.RunAsync(tween, cancellationToken);
+            }
+            else Zoom = zoom;
         }
 
         private void MonitorAspect ()
@@ -284,7 +356,8 @@ namespace Naninovel
             {
                 OnAspectChanged?.Invoke(ScreenAspect);
                 lastAspect = ScreenAspect;
-                CorrectOrthoSize(lastAspect);
+                if (config.AutoCorrectOrthoSize)
+                    CorrectOrthoSize(lastAspect);
             }
         }
 
@@ -319,11 +392,9 @@ namespace Naninovel
             return Mathf.Abs(a.width - b.width) + Mathf.Abs(a.height - b.height) + Mathf.Abs(a.refreshRate - b.refreshRate);
         }
 
-        private void ApplyOffset (Vector3 offset) => ApplyOffset((Vector2)offset);
-
-        private void ApplyOffset (Vector2 offset)
+        private void ApplyOffset (Vector3 offset)
         {
-            Camera.transform.position = config.InitialPosition + (Vector3)offset;
+            Camera.transform.position = config.InitialPosition + offset;
         }
 
         private void ApplyRotation (float rotation)
@@ -333,7 +404,8 @@ namespace Naninovel
 
         private void ApplyZoom (float zoom)
         {
-            ApplyOrthoSizeZoomAware(OrthoSize, zoom);
+            if (Orthographic) ApplyOrthoSizeZoomAware(OrthoSize, zoom);
+            else Camera.fieldOfView = Mathf.Lerp(5f, 60f, 1f - zoom);
         }
 
         private void CompleteOffsetTween ()

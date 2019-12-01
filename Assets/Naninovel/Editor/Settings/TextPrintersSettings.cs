@@ -13,7 +13,7 @@ namespace Naninovel
         protected override Type ResourcesTypeConstraint => GetTypeConstraint();
         protected override string ResourcesSelectionTooltip => GetTooltip();
         protected override bool AllowMultipleResources => false;
-        protected override HashSet<string> LockedActorIds => new HashSet<string> { "Dialogue", "Fullscreen", "Wide", "Chat" };
+        protected override HashSet<string> LockedActorIds => new HashSet<string> { "Dialogue", "Fullscreen", "Wide", "Chat", "Bubble", "TMProDialogue", "TMProFullscreen", "TMProWide", "TMProBubble" };
 
         private Type GetTypeConstraint ()
         {
@@ -26,7 +26,7 @@ namespace Naninovel
 
         private string GetTooltip ()
         {
-            if (EditedActorId == Configuration.DefaulPrinterId)
+            if (EditedActorId == Configuration.DefaultPrinterId)
                 return "This printer will be active by default: all the generic text and `@print` commands will use it to output the text. Use `@printer PrinterID` action to change active printer.";
             return $"Use `@printer {EditedActorId}` in naninovel scripts to set this printer active; all the consequent generic text and `@print` commands will then use it to output the text.";
         }

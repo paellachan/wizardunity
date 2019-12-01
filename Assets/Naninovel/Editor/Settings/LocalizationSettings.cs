@@ -11,7 +11,8 @@ namespace Naninovel
     {
         protected override string HelpUri => "guide/localization.html";
         protected override Dictionary<string, Action<SerializedProperty>> OverrideConfigurationDrawers => new Dictionary<string, Action<SerializedProperty>> {
-            [nameof(LocalizationConfiguration.DefaultLocale)] = property => LocalesPopupDrawer.Draw(property)
+            [nameof(LocalizationConfiguration.SourceLocale)] = property => LocalesPopupDrawer.Draw(property),
+            [nameof(LocalizationConfiguration.DefaultLocale)] = property => LocalesPopupDrawer.Draw(property, true)
         };
 
         protected override void DrawConfigurationEditor ()

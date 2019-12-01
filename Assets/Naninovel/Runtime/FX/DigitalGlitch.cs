@@ -2,6 +2,7 @@
 
 using Naninovel.Commands;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -28,7 +29,7 @@ namespace Naninovel.FX
             Intensity = Mathf.Abs(parameters?.ElementAtOrDefault(1)?.AsInvariantFloat() ?? defaultIntensity);
         }
 
-        public async Task AwaitSpawnAsync () 
+        public async Task AwaitSpawnAsync (CancellationToken cancellationToken = default) 
         {
             var camera = Engine.GetService<CameraManager>().Camera;
 
@@ -38,6 +39,7 @@ namespace Naninovel.FX
             cameraComponent.Intensity = Intensity;
 
             await new WaitForSeconds(Duration);
+            if (cancellationToken.IsCancellationRequested) return;
 
             Engine.GetService<SpawnManager>()?.DestroySpawnedObject(gameObject.name);
         }

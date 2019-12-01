@@ -9,23 +9,55 @@ using UnityEngine;
 
 namespace Naninovel
 {
-    public abstract class ActorManager<TActor, TState> : IActorManager, IStatefulService<GameStateMap>
+    /// <summary>
+    /// Manages <typeparamref name="TActor"/> objects.
+    /// </summary>
+    /// <typeparam name="TActor">Type of managed actors.</typeparam>
+    /// <typeparam name="TState">Type of state describing managed actors.</typeparam>
+    /// <typeparam name="TMeta">Type of metadata required to construct managed actors.</typeparam>
+    /// <typeparam name="TConfig">Type of the service configuration.</typeparam>
+    public abstract class ActorManager<TActor, TState, TMeta, TConfig> : IActorManager, IStatefulService<GameStateMap>
         where TActor : IActor
         where TState : ActorState<TActor>, new()
+        where TMeta : ActorMetadata
+        where TConfig : ActorManagerConfiguration<TMeta>
     {
         [Serializable]
-        private class GameState
+        private class GameState : ISerializationCallbackReceiver
         {
-            public List<string> ActorStateJsonList = new List<string>();
+            public List<TState> ActorState { get; set; } = new List<TState>();
+
+            [SerializeField] private List<string> actorStateJson = new List<string>();
+
+            public virtual void OnBeforeSerialize ()
+            {
+                actorStateJson.Clear();
+                foreach (var state in ActorState)
+                {
+                    var stateJson = state.ToJson();
+                    actorStateJson.Add(stateJson);
+                }
+            }
+
+            public virtual void OnAfterDeserialize ()
+            {
+                ActorState.Clear();
+                foreach (var stateJson in actorStateJson)
+                {
+                    var state = new TState();
+                    state.OverwriteFromJson(stateJson);
+                    ActorState.Add(state);
+                }
+            }
         }
 
-        public EasingType DefaultEasingType => config.DefaultEasing;
+        public EasingType DefaultEasingType => Configuration.DefaultEasing;
 
-        protected Dictionary<string, TActor> ManagedActors { get; set; }
+        protected readonly TConfig Configuration;
+        protected readonly Dictionary<string, TActor> ManagedActors;
 
         private static IEnumerable<Type> implementationTypes;
 
-        private readonly ActorManagerConfiguration config;
         private readonly Dictionary<string, TaskCompletionSource<TActor>> pendingAddActorTasks;
 
         static ActorManager ()
@@ -34,9 +66,9 @@ namespace Naninovel
                 .Where(t => t.GetInterfaces().Contains(typeof(TActor)));
         }
 
-        public ActorManager (ActorManagerConfiguration config)
+        public ActorManager (TConfig config)
         {
-            this.config = config;
+            Configuration = config;
             ManagedActors = new Dictionary<string, TActor>(StringComparer.Ordinal);
             pendingAddActorTasks = new Dictionary<string, TaskCompletionSource<TActor>>();
         }
@@ -53,26 +85,36 @@ namespace Naninovel
             RemoveAllActors();
         }
 
-        public Task SaveServiceStateAsync (GameStateMap stateMap)
+        public virtual Task SaveServiceStateAsync (GameStateMap stateMap)
         {
             var state = new GameState();
             foreach (var kv in ManagedActors)
             {
                 var actorState = new TState();
                 actorState.OverwriteFromActor(kv.Value);
-                state.ActorStateJsonList.Add(actorState.ToJson());
+                state.ActorState.Add(actorState);
             }
-            stateMap.SerializeObject(state);
+            stateMap.SetState(state);
             return Task.CompletedTask;
         }
 
-        public async Task LoadServiceStateAsync (GameStateMap stateMap)
+        public virtual async Task LoadServiceStateAsync (GameStateMap stateMap)
         {
-            var state = stateMap.DeserializeObject<GameState>() ?? new GameState();
-            foreach (var stateJson in state.ActorStateJsonList)
+            var state = stateMap.GetState<GameState>();
+            if (state is null)
             {
-                var actorState = new TState();
-                actorState.OverwriteFromJson(stateJson);
+                RemoveAllActors();
+                return;
+            }
+
+            // Remove actors that doesn't exist in the serialized state.
+            if (ManagedActors.Count > 0)
+                foreach (var actorId in ManagedActors.Keys.ToList())
+                    if (!state.ActorState.Exists(s => s.Id.EqualsFast(actorId)))
+                        RemoveActor(actorId);
+
+            foreach (var actorState in state.ActorState)
+            {
                 var actor = await GetOrAddActorAsync(actorState.Id);
                 actorState.ApplyToActor(actor);
             }
@@ -81,7 +123,7 @@ namespace Naninovel
         /// <summary>
         /// Checks whether an actor with the provided ID is managed by the service. 
         /// </summary>
-        public bool ActorExists (string actorId) => ManagedActors.ContainsKey(actorId);
+        public bool ActorExists (string actorId) => !string.IsNullOrEmpty(actorId) && ManagedActors.ContainsKey(actorId);
 
         /// <summary>
         /// Adds a new managed actor with the provided ID.
@@ -128,11 +170,6 @@ namespace Naninovel
             state.ApplyToActor(actor);
             return actor;
         }
-
-        /// <summary>
-        /// Adds a new managed actor with the provided state.
-        /// </summary>
-        public Task<IActor> AddActorAsync (ActorState state) => AddActorAsync(state);
 
         /// <summary>
         /// Retrieves a managed actor with the provided ID.
@@ -194,11 +231,16 @@ namespace Naninovel
         /// <summary>
         /// Retrieves state of a managed actor with the provided ID.
         /// </summary>
+        ActorState IActorManager.GetActorState (string actorId) => GetActorState(actorId);
+
+        /// <summary>
+        /// Retrieves state of a managed actor with the provided ID.
+        /// </summary>
         public virtual TState GetActorState (string actorId)
         {
             if (!ActorExists(actorId))
             {
-                Debug.LogError($"Can't find '{actorId}' actor.");
+                Debug.LogError($"Can't retrieve state of a '{actorId}' actor: actor not found.");
                 return default;
             }
 
@@ -209,24 +251,19 @@ namespace Naninovel
         }
 
         /// <summary>
-        /// Retrieves state of a managed actor with the provided ID.
+        /// Retrieves metadata of a managed actor with the provided ID.
         /// </summary>
-        ActorState IActorManager.GetActorState (string actorId) => GetActorState(actorId);
+        ActorMetadata IActorManager.GetActorMetadata (string actorId) => GetActorMetadata(actorId);
 
         /// <summary>
         /// Retrieves metadata of a managed actor with the provided ID.
         /// </summary>
-        public abstract ActorMetadata GetActorMetadata (string actorId);
-
-        /// <summary>
-        /// Retrieves metadata of a managed actor with the provided ID.
-        /// </summary>
-        public TMetadata GetActorMetadata<TMetadata> (string actorId) 
-            where TMetadata : ActorMetadata => GetActorMetadata(actorId) as TMetadata;
+        public TMeta GetActorMetadata (string actorId) => 
+            Configuration.ActorMetadataMap.GetMetaById(actorId) ?? Configuration.DefaultActorMetadata;
 
         protected virtual async Task<TActor> ConstructActorAsync (string actorId)
         {
-            var metadata = GetActorMetadata<ActorMetadata>(actorId);
+            var metadata = GetActorMetadata(actorId);
 
             var implementationType = implementationTypes.FirstOrDefault(t => t.FullName == metadata.Implementation);
             Debug.Assert(implementationType != null, $"`{metadata.Implementation}` actor implementation type for `{typeof(TActor).Name}` is not found.");

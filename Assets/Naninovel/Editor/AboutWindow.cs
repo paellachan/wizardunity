@@ -12,9 +12,10 @@ namespace Naninovel
         public static string InstalledVersion { get => PlayerPrefs.GetString(installedVersionKey); set => PlayerPrefs.SetString(installedVersionKey, value); }
 
         private const string installedVersionKey = "Naninovel." + nameof(AboutWindow) + "." + nameof(InstalledVersion);
+        private const string releaseNotesUri = "https://github.com/Elringus/NaninovelWeb/releases";
+        private const string faqUri = "https://naninovel.com/faq/";
         private const string guideUri = "https://naninovel.com/guide/";
-        private const string apiReferenceUri = "https://naninovel.com/api/";
-        private const string issueTrackerUri = "https://github.com/Elringus/NaninovelWeb/issues?q=is%3Aissue+label%3Abug";
+        private const string commandsUri = "https://naninovel.com/api/";
         private const string discordUri = "https://discord.gg/avhRzP3";
         private const string supportUri = "https://naninovel.com/support/";
         private const string reviewUri = "https://u3d.as/1pg9";
@@ -53,19 +54,24 @@ namespace Naninovel
             EditorGUILayout.SelectableLabel($"{engineVersion.Version} build {engineVersion.Build}");
             GUILayout.EndHorizontal();
 
+            EditorGUILayout.LabelField("Release Notes", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("For the complete list of additions, changes and fixes associated with this Naninovel release, check the release page on GitHub.", EditorStyles.wordWrappedLabel);
+            if (GUILayout.Button($"{engineVersion.Version} Release Notes")) Application.OpenURL(releaseNotesUri + $"/tag/{engineVersion.Version}");
+
+            GUILayout.Space(5);
+
             EditorGUILayout.LabelField("Online Resources", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Check our online documentation for the quick start guides and tutorials. API reference will help you navigate through available script commands and the ways to use them. Bug reports, questions and suggestions are always welcome at the issue tracker and discord server.", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField("Check our online resources for the quick start guides and tutorials. Command reference will help you navigate through the script commands and the ways to use them. For the available support options see the support page. Any questions and suggestions are always welcome at our discord server.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("FAQ")) Application.OpenURL(faqUri);
             if (GUILayout.Button("Guide")) Application.OpenURL(guideUri);
-            if (GUILayout.Button("API Reference")) Application.OpenURL(apiReferenceUri);
-            if (GUILayout.Button("Issue Tracker")) Application.OpenURL(issueTrackerUri);
-            if (GUILayout.Button("Discord")) Application.OpenURL(discordUri);
+            if (GUILayout.Button("Commands")) Application.OpenURL(commandsUri);
             if (GUILayout.Button("Support")) Application.OpenURL(supportUri);
+            if (GUILayout.Button("Discord")) Application.OpenURL(discordUri);
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(5);
 
-            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Rate Naninovel", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("We really hope you like Naninovel! If you feel like it, please leave a review on the Asset Store, that helps us out a lot.", EditorStyles.wordWrappedLabel);
             if (GUILayout.Button("Review On Asset Store")) Application.OpenURL(reviewUri);
@@ -99,7 +105,7 @@ namespace Naninovel
         [MenuItem("Naninovel/About", priority = 1)]
         private static void OpenWindow ()
         {
-            var position = new Rect(100, 100, 375, 395);
+            var position = new Rect(100, 100, 375, 475);
             GetWindowWithRect<AboutWindow>(position, true, "About Naninovel", true);
         }
     }

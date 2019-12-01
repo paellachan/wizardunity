@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -31,11 +32,9 @@ namespace Naninovel.Commands
             Engine.GetService<AudioManager>()?.ReleaseVoiceResources(this, VoicePath);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             await Engine.GetService<AudioManager>()?.PlayVoiceAsync(VoicePath, Volume);
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
     } 
 }

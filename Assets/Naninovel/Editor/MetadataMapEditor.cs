@@ -50,8 +50,7 @@ namespace Naninovel
         private const string metadataGuidPropertyName = "guid";
         private const float paddingWidth = 5;
         private const float buttonWidth = 45;
-
-        private static readonly GUIContent editButtonLabel = EditorGUIUtility.IconContent("d_TimelineEditModeRippleOFF", "|Edit actor metadata.");
+        private static readonly GUIContent editButtonLabel = new GUIContent(Resources.Load<Texture2D>("Naninovel/EditMetaIcon"), "Edit actor metadata.");
 
         private readonly SerializedObject serializedObject;
         private readonly SerializedProperty idsProperty;

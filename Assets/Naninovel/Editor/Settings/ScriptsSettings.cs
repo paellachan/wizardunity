@@ -21,6 +21,13 @@ namespace Naninovel
             [nameof(ScriptsConfiguration.ExternalLoader)] = property => { if (Configuration.EnableCommunityModding) EditorGUILayout.PropertyField(property); },
             [nameof(ScriptsConfiguration.ShowNavigatorOnInit)] = property => { if (Configuration.EnableNavigator) EditorGUILayout.PropertyField(property); },
             [nameof(ScriptsConfiguration.NavigatorSortOrder)] = property => { if (Configuration.EnableNavigator) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.HideUnusedParameters)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.InsertLineKey)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.InsertLineModifier)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.SaveScriptKey)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.SaveScriptModifier)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.VisualEditorPageLength)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
+            [nameof(ScriptsConfiguration.CustomStyleSheet)] = property => { if (Configuration.EnableVisualEditor) EditorGUILayout.PropertyField(property); },
         };
 
         [MenuItem("Naninovel/Resources/Scripts")]

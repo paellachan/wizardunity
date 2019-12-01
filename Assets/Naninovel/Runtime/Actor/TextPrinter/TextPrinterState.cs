@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Naninovel
 {
@@ -10,30 +11,30 @@ namespace Naninovel
     [System.Serializable]
     public class TextPrinterState : ActorState<ITextPrinterActor>
     {
-        public bool IsPrinterActive = false;
-        public string PrintedText = null;
-        public string AuthorId = null;
-        public float PrintDelay = .03f;
-        public List<string> ActiveRichTextTags = new List<string>();
-
-        public override void ApplyToActor (ITextPrinterActor actor)
-        {
-            base.ApplyToActor(actor);
-            actor.IsPrinterActive = IsPrinterActive;
-            actor.PrintedText = PrintedText;
-            actor.AuthorId = AuthorId;
-            actor.PrintDelay = PrintDelay;
-            actor.RichTextTags = new List<string>(ActiveRichTextTags);
-        }
+        [SerializeField] private string text = default;
+        [SerializeField] private string authorId = default;
+        [SerializeField] private List<string> richTextTags = new List<string>();
+        [SerializeField] private float revealProgress = 0f;
 
         public override void OverwriteFromActor (ITextPrinterActor actor)
         {
             base.OverwriteFromActor(actor);
-            IsPrinterActive = actor.IsPrinterActive;
-            PrintedText = actor.PrintedText;
-            AuthorId = actor.AuthorId;
-            PrintDelay = actor.PrintDelay;
-            ActiveRichTextTags = new List<string>(actor.RichTextTags);
+
+            text = actor.Text;
+            authorId = actor.AuthorId;
+            richTextTags.Clear();
+            richTextTags.AddRange(actor.RichTextTags);
+            revealProgress = actor.RevealProgress;
+        }
+
+        public override void ApplyToActor (ITextPrinterActor actor)
+        {
+            base.ApplyToActor(actor);
+
+            actor.Text = text;
+            actor.AuthorId = authorId;
+            actor.RichTextTags = new List<string>(richTextTags);
+            actor.RevealProgress = revealProgress;
         }
     }
 }

@@ -1,7 +1,10 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using UnityCommon;
 using UnityEngine;
 
 namespace Naninovel
@@ -10,92 +13,121 @@ namespace Naninovel
     /// Manages text printer actors.
     /// </summary>
     [InitializeAtRuntime]
-    public class TextPrinterManager : ActorManager<ITextPrinterActor, TextPrinterState>, IStatefulService<SettingsStateMap>
+    public class TextPrinterManager : OrthoActorManager<ITextPrinterActor, TextPrinterState, TextPrinterMetadata, TextPrintersConfiguration>, IStatefulService<SettingsStateMap>
     {
         [System.Serializable]
         private class Settings
         {
-            public float PrintSpeed = .5f;
+            public float BaseRevealSpeed = .5f;
         }
 
-        public string DefaultPrinterId => config.DefaulPrinterId;
-        public float MaxPrintDelay => config.MaxPrintDelay;
-        public float PrintSpeed { get; private set; }
-        public float PrintDelay => Mathf.Lerp(MaxPrintDelay, 0, PrintSpeed);
-
-        private readonly TextPrintersConfiguration config;
-
-        public TextPrinterManager (TextPrintersConfiguration config) 
-            : base(config)
+        [System.Serializable]
+        private class GameState
         {
-            this.config = config;
+            public string DefaultPrinterId = null;
+        }
+
+        /// <summary>
+        /// Invoked when a print text operation (<see cref="PrintTextAsync(string, string, string, float, CancellationToken)"/>) is started.
+        /// </summary>
+        public event Action<PrintTextArgs> OnPrintTextStarted;
+        /// <summary>
+        /// Invoked when a print text operation (<see cref="PrintTextAsync(string, string, string, float, CancellationToken)"/>) is finished.
+        /// </summary>
+        public event Action<PrintTextArgs> OnPrintTextFinished;
+
+        /// <summary>
+        /// ID of the printer actor to use by default when a specific one is not specified.
+        /// </summary>
+        public string DefaultPrinterId { get; set; }
+        /// <summary>
+        /// Base speed for revealing text messages as per the game settings, in 0 to 1 range.
+        /// </summary>
+        public float BaseRevealSpeed { get; set; }
+
+        private readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+        private readonly ScriptPlayer scriptPlayer;
+
+        public TextPrinterManager (TextPrintersConfiguration config, CameraManager cameraManager, ScriptPlayer scriptPlayer)
+            : base(config, cameraManager)
+        {
+            this.scriptPlayer = scriptPlayer;
+            DefaultPrinterId = config.DefaultPrinterId;
+        }
+
+        public override void ResetService ()
+        {
+            base.ResetService();
+            DefaultPrinterId = Configuration.DefaultPrinterId;
         }
 
         public Task SaveServiceStateAsync (SettingsStateMap stateMap)
         {
             var settings = new Settings {
-                PrintSpeed = PrintSpeed
+                BaseRevealSpeed = BaseRevealSpeed
             };
-            stateMap.SerializeObject(settings);
+            stateMap.SetState(settings);
             return Task.CompletedTask;
         }
 
         public Task LoadServiceStateAsync (SettingsStateMap stateMap)
         {
-            var settings = stateMap.DeserializeObject<Settings>() ?? new Settings();
-            SetPrintSpeed(settings.PrintSpeed);
+            var settings = stateMap.GetState<Settings>() ?? new Settings();
+            BaseRevealSpeed = settings.BaseRevealSpeed;
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Returns currently active printer.
-        /// </summary>
-        public ITextPrinterActor GetActivePrinter ()
+
+        public override async Task SaveServiceStateAsync (GameStateMap stateMap)
         {
-            return ManagedActors.Values.FirstOrDefault(p => p.IsPrinterActive);
+            await base.SaveServiceStateAsync(stateMap);
+
+            var gameState = new GameState() {
+                DefaultPrinterId = DefaultPrinterId ?? Configuration.DefaultPrinterId
+            };
+            stateMap.SetState(gameState);
+        }
+
+        public override async Task LoadServiceStateAsync (GameStateMap stateMap)
+        {
+            await base.LoadServiceStateAsync(stateMap);
+
+            var state = stateMap.GetState<GameState>() ?? new GameState();
+            DefaultPrinterId = state.DefaultPrinterId ?? Configuration.DefaultPrinterId;
         }
 
         /// <summary>
-        /// Selects printer with provided ID as active, wile de-activating all the other managed printers.
+        /// Prints (reveals) provided text message over time using a managed text printer with the provided ID.
         /// </summary>
-        public void SetActivePrinter (string id)
+        /// <param name="printerId">ID of the managed text printer which should print the message.</param>
+        /// <param name="text">Text of the message to print.</param>
+        /// <param name="authorId">ID of a character actor to which the printed text belongs (if any).</param>
+        /// <param name="speed">Text reveal speed (<see cref="BaseRevealSpeed"/> modifier).</param>
+        /// <param name="cancellationToken">Token for task cancellation. The text will be revealed instantly when cancelled.</param>
+        public async Task PrintTextAsync (string printerId, string text, string authorId = default, float speed = 1, CancellationToken cancellationToken = default)
         {
-            if (!ActorExists(id)) return;
+            var printer = await GetOrAddActorAsync(printerId);
 
-            foreach (var prntr in ManagedActors.Values)
-                prntr.IsPrinterActive = prntr.Id == id;
-        }
+            OnPrintTextStarted?.Invoke(new PrintTextArgs(printer, text, authorId, speed));
 
-        /// <summary>
-        /// De-activates all the managed printers.
-        /// </summary>
-        public void DeactivateAllPrinters ()
-        {
-            foreach (var prntr in ManagedActors.Values)
-                prntr.IsPrinterActive = false;
-        }
+            printer.AuthorId = authorId;
+            printer.Text += text;
 
-        /// <summary>
-        /// Sets <see cref="ITextPrinterActor.PrintDelay"/> for all the managed printers.
-        /// </summary>
-        public void SetPrintSpeed (float value)
-        {
-            PrintSpeed = value;
-            foreach (var printer in ManagedActors)
-                printer.Value.PrintDelay = PrintDelay;
-        }
+            var revealDelay = scriptPlayer.IsSkipActive ? 0 : Mathf.Lerp(Configuration.MaxRevealDelay, 0, BaseRevealSpeed * speed);
+            await printer.RevealTextAsync(revealDelay, cancellationToken);
 
-        public override ActorMetadata GetActorMetadata (string actorId) => 
-            config.Metadata.GetMetaById(actorId) ?? config.DefaultMetadata;
+            printer.RevealProgress = 1f; // Make sure all the text is always revealed.
 
-        protected override async Task<ITextPrinterActor> ConstructActorAsync (string actorId)
-        {
-            var actor = await base.ConstructActorAsync(actorId);
+            if (scriptPlayer.IsAutoPlayActive)
+            {
+                var autoPlayDelay = revealDelay * text.Count(char.IsLetterOrDigit);
+                var waitUntilTime = Time.time + autoPlayDelay;
+                while (Time.time < waitUntilTime && !cancellationToken.IsCancellationRequested)
+                    await waitForEndOfFrame;
+            }
+            else await waitForEndOfFrame; // Always wait at least one frame to prevent instant skipping.
 
-            // Set currently used delay when creating new printer.
-            actor.PrintDelay = PrintDelay;
-
-            return actor;
+            OnPrintTextFinished?.Invoke(new PrintTextArgs(printer, text, authorId, speed));
         }
     }
 }

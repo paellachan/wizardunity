@@ -35,7 +35,6 @@ namespace Naninovel.UI
             this.AssertRequiredObjects(quickLoadToggle, saveToggle, loadToggle, quickLoadGrid, saveGrid, loadGrid);
             stateManager = Engine.GetService<StateManager>();
             inputManager = Engine.GetService<InputManager>();
-            confirmationUI = Engine.GetService<UIManager>().GetUI<IConfirmationUI>();
         }
 
         protected override void OnEnable ()
@@ -50,12 +49,15 @@ namespace Naninovel.UI
         {
             base.OnDisable();
 
-            stateManager.OnGameSaveFinished -= HandleGameSaveFinished;
-            inputManager.RemoveBlockingUI(this);
+            if (stateManager != null)
+                stateManager.OnGameSaveFinished -= HandleGameSaveFinished;
+            inputManager?.RemoveBlockingUI(this);
         }
 
         public async Task InitializeAsync ()
         {
+            confirmationUI = Engine.GetService<UIManager>().GetUI<IConfirmationUI>();
+
             var saveSlots = await SlotManager.LoadAllSaveSlotsAsync();
             foreach (var slot in saveSlots)
             {
@@ -157,7 +159,7 @@ namespace Naninovel.UI
             quickLoadGrid.GetSlot(slotId).SetEmptyState();
         }
 
-        private void HandleGameSaveFinished (GameSaveLoadArgs args)
+        private async void HandleGameSaveFinished (GameSaveLoadArgs args)
         {
             if (!args.Quick) return;
 
@@ -170,9 +172,11 @@ namespace Naninovel.UI
                 var prevSlot = quickLoadGrid.GetSlot(prevSlotId);
                 prevSlot.SetState(currSlot.State);
             }
+
             // Setting the new quick save to the first slot.
             var firstSlotId = SlotManager.IndexToQuickSaveSlotId(1);
-            quickLoadGrid.GetSlot(firstSlotId).SetState(args.StateMap);
+            var slotState = await stateManager.GameStateSlotManager.LoadAsync(args.SlotId);
+            quickLoadGrid.GetSlot(firstSlotId).SetState(slotState);
         }
     }
 }

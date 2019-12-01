@@ -14,8 +14,10 @@ namespace Naninovel
         public static string PackageRootPath => GetPackageRootPath();
         public static string PackageMarkerPath => Path.Combine(cachedPackageRootPath, markerSearchPattern); 
         public static string EditorResourcesPath => Path.Combine(PackageRootPath, "Editor/Resources/Naninovel");
+        public static string RuntimeResourcesPath => Path.Combine(PackageRootPath, "Resources/Naninovel");
+        public static string PrefabsPath => Path.Combine(PackageRootPath, "Prefabs");
 
-        private const string markerSearchPattern = "PackageMarker.com-elringus-naninovel";
+        private const string markerSearchPattern = "Elringus.Naninovel.Editor.asmdef";
         private static string cachedPackageRootPath;
 
         private static string GetPackageRootPath ()
@@ -24,7 +26,7 @@ namespace Naninovel
             {
                 var marker = Directory.GetFiles(Application.dataPath, markerSearchPattern, SearchOption.AllDirectories).FirstOrDefault();
                 if (marker is null) { Debug.LogError($"Failed to find `{markerSearchPattern}` file."); return null; }
-                cachedPackageRootPath = Directory.GetParent(marker)?.Parent?.Parent?.Parent?.FullName;
+                cachedPackageRootPath = Directory.GetParent(marker)?.Parent?.FullName;
             }
             return cachedPackageRootPath;
         }

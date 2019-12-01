@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -21,10 +22,8 @@ namespace Naninovel.Commands
     [CommandAlias("despawn")]
     public class DestroySpawned : Command
     {
-        private struct UndoData { public bool Destroyed; public string[] SpawnParams; }
-
         public interface IParameterized { void SetDestroyParameters (string[] parameters); }
-        public interface IAwaitable { Task AwaitDestroyAsync (); }
+        public interface IAwaitable { Task AwaitDestroyAsync (CancellationToken cancellationToken = default); }
 
         /// <summary>
         /// Path to the prefab resource to destroy. Path is relative to a `./Resources` folder, eg 
@@ -43,9 +42,7 @@ namespace Naninovel.Commands
         protected virtual string FullPath => Path;
         protected virtual SpawnManager SpawnManager => Engine.GetService<SpawnManager>();
 
-        private UndoData undoData;
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var spawnedObj = SpawnManager.GetSpawnedObject(FullPath);
             if (spawnedObj is null)
@@ -54,21 +51,7 @@ namespace Naninovel.Commands
                 return;
             }
 
-            var destroyed = await SpawnManager.DestroySpawnedAsync(FullPath, Params);
-            if (destroyed)
-            {
-                undoData.Destroyed = true;
-                undoData.SpawnParams = spawnedObj.State.Params;
-            }
-        }
-
-        public override async Task UndoAsync ()
-        {
-            if (!undoData.Destroyed) return;
-
-            await SpawnManager.SpawnAsync(FullPath, undoData.SpawnParams);
-
-            undoData = default;
+            await SpawnManager.DestroySpawnedAsync(FullPath, cancellationToken, Params);
         }
     }
 }

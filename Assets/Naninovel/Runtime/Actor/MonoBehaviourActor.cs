@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -8,7 +9,7 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="IActor"/> implementation using <see cref="MonoBehaviour"/> to represent an actor.
+    /// A <see cref="IActor"/> implementation using <see cref="MonoBehaviour"/> to represent the actor.
     /// </summary>
     public abstract class MonoBehaviourActor : IActor, IDisposable
     {
@@ -40,12 +41,12 @@ namespace Naninovel
         protected virtual GameObject GameObject { get; private set; }
         protected virtual Transform Transform => GameObject.transform;
 
+        private readonly Tweener<VectorTween> positionTweener, rotationTweener, scaleTweener;
+        private readonly Tweener<ColorTween> tintColorTweener;
         private Vector3 position = Vector3.zero;
         private Vector3 scale = Vector3.one;
         private Quaternion rotation = Quaternion.identity;
         private Color tintColor = Color.white;
-        private Tweener<VectorTween> positionTweener, rotationTweener, scaleTweener;
-        private Tweener<ColorTween> tintColorTweener;
 
         public MonoBehaviourActor (string id, ActorMetadata metadata)
         {
@@ -60,44 +61,44 @@ namespace Naninovel
 
         public virtual Task InitializeAsync () => Task.CompletedTask; 
 
-        public abstract Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default);
+        public abstract Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
 
-        public abstract Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default);
+        public abstract Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default);
 
-        public virtual async Task ChangePositionAsync (Vector3 position, float duration, EasingType easingType = default)
+        public virtual async Task ChangePositionAsync (Vector3 position, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompletePositionTween();
             this.position = position;
 
             var tween = new VectorTween(GetBehaviourPosition(), position, duration, SetBehaviourPosition, false, easingType);
-            await positionTweener.RunAsync(tween);
+            await positionTweener.RunAsync(tween, cancellationToken);
         }
 
-        public virtual async Task ChangeRotationAsync (Quaternion rotation, float duration, EasingType easingType = default)
+        public virtual async Task ChangeRotationAsync (Quaternion rotation, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompleteRotationTween();
             this.rotation = rotation;
 
             var tween = new VectorTween(GetBehaviourRotation().ClampedEulerAngles(), rotation.ClampedEulerAngles(), duration, SetBehaviourRotation, false, easingType);
-            await rotationTweener.RunAsync(tween);
+            await rotationTweener.RunAsync(tween, cancellationToken);
         }
 
-        public virtual async Task ChangeScaleAsync (Vector3 scale, float duration, EasingType easingType = default)
+        public virtual async Task ChangeScaleAsync (Vector3 scale, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompleteScaleTween();
             this.scale = scale;
 
             var tween = new VectorTween(GetBehaviourScale(), scale, duration, SetBehaviourScale, false, easingType);
-            await scaleTweener.RunAsync(tween);
+            await scaleTweener.RunAsync(tween, cancellationToken);
         }
 
-        public virtual async Task ChangeTintColorAsync (Color tintColor, float duration, EasingType easingType = default)
+        public virtual async Task ChangeTintColorAsync (Color tintColor, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             CompleteTintColorTween();
             this.tintColor = tintColor;
 
             var tween = new ColorTween(GetBehaviourTintColor(), tintColor, ColorTweenMode.All, duration, SetBehaviourTintColor, false, easingType);
-            await tintColorTweener.RunAsync(tween);
+            await tintColorTweener.RunAsync(tween, cancellationToken);
         }
 
         public virtual Task HoldResourcesAsync (object holder, string appearance) => Task.CompletedTask;

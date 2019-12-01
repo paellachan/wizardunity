@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -15,13 +16,13 @@ namespace Naninovel.Commands
     /// ; Offset over X-axis (pan) the camera by -3 units and offset over Y-axis by 1.5 units
     /// @camera offset:-3,1.5
     /// 
-    /// ; Zoom-in the camera by 50%.
-    /// @camera zoom:0.5
+    /// ; Set camera in perspective mode, zoom-in by 50% and move back by 5 units
+    /// @camera ortho:false offset:,,-5 zoom:0.5
     /// 
-    /// ; Rotate the camera by 10 degrees clock-wise
-    /// @camera rotation:10
+    /// ; Set camera in orthographic mode and rotate by 10 degrees clock-wise
+    /// @camera ortho:true rotation:10
     /// 
-    /// ; All the above simultaneously animated over 5 seconds
+    /// ; Offset, zoom and rotate simultaneously animated over 5 seconds
     /// @camera offset:-3,1.5 zoom:0.5 rotation:10 time:5
     /// 
     /// ; Instantly reset camera to the default state
@@ -33,10 +34,8 @@ namespace Naninovel.Commands
     [CommandAlias("camera")]
     public class ModifyCamera : Command
     {
-        private struct UndoData { public bool Executed; public Vector2 Offset; public float Rotation, Zoom; public string[] ToggleTypeNames; }
-
         /// <summary>
-        /// Local camera position offset in units by X and Y axis.
+        /// Local camera position offset in units by X,Y,Z axes.
         /// </summary>
         [CommandParameter(optional: true)]
         public float?[] Offset { get => GetDynamicParameter<float?[]>(null); set => SetDynamicParameter(value); }
@@ -46,10 +45,15 @@ namespace Naninovel.Commands
         [CommandParameter(optional: true)]
         public float Rotation { get => GetDynamicParameter(0f); set => SetDynamicParameter(value); }
         /// <summary>
-        /// Relatize camera zoom (orthographic size scale), in 0.0 to 1.0 range.
+        /// Relatize camera zoom (orthographic size or field of view, depending on the render mode), in 0.0 to 1.0 range.
         /// </summary>
         [CommandParameter(optional: true)]
         public float Zoom { get => GetDynamicParameter(0f); set => SetDynamicParameter(value); }
+        /// <summary>
+        /// Whether the camera should render in orthographic (true) or perspective (false) mode.
+        /// </summary>
+        [CommandParameter("ortho", true)]
+        public bool? Orthographic { get => GetDynamicParameter<bool?>(null); set => SetDynamicParameter(value); }
         /// <summary>
         /// Names of the components to toggle (enable if disabled and vice-versa). The components should be attached to the same gameobject as the camera.
         /// This can be used to toggle [custom post-processing effects](/guide/special-effects.md#camera-effects).
@@ -66,49 +70,26 @@ namespace Naninovel.Commands
         [CommandParameter("easing", true)]
         public string EasingTypeName { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var camera = Engine.GetService<CameraManager>();
-
-            undoData.Executed = true;
-            undoData.Offset = camera.Offset;
-            undoData.Rotation = camera.Rotation;
-            undoData.Zoom = camera.Zoom;
-            undoData.ToggleTypeNames = ToggleTypeNames;
 
             var easingType = camera.DefaultEasintType;
             if (!string.IsNullOrEmpty(EasingTypeName) && !Enum.TryParse(EasingTypeName, true, out easingType))
                 Debug.LogWarning($"Failed to parse `{EasingTypeName}` easing.");
 
-            if (undoData.ToggleTypeNames != null)
+            if (Orthographic.HasValue)
+                camera.Camera.orthographic = Orthographic.Value;
+
+            if (ToggleTypeNames != null)
                 foreach (var name in ToggleTypeNames)
                     ToggleComponent(name, camera.Camera.gameObject);
 
             await Task.WhenAll(
-                    camera.ChangeOffsetAsync(ArrayUtils.ToVector2(Offset, Vector2.zero), Duration, easingType),
-                    camera.ChangeRotationAsync(Rotation, Duration, easingType),
-                    camera.ChangeZoomAsync(Zoom, Duration, easingType)
+                    camera.ChangeOffsetAsync(ArrayUtils.ToVector3(Offset, Vector3.zero), Duration, easingType, cancellationToken),
+                    camera.ChangeRotationAsync(Rotation, Duration, easingType, cancellationToken),
+                    camera.ChangeZoomAsync(Zoom, Duration, easingType, cancellationToken)
                 );
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            var camera = Engine.GetService<CameraManager>();
-
-            camera.Offset = undoData.Offset;
-            camera.Rotation = undoData.Rotation;
-            camera.Zoom = undoData.Zoom;
-
-            if (undoData.ToggleTypeNames != null)
-                foreach (var name in ToggleTypeNames)
-                    ToggleComponent(name, camera.Camera.gameObject);
-
-            undoData = default;
-            return Task.CompletedTask;
         }
 
         private void ToggleComponent (string componentName, GameObject obj)

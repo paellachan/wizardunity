@@ -9,6 +9,6 @@ namespace Naninovel
     [System.Serializable]
     public class BackgroundState : ActorState<IBackgroundActor>
     {
-
+        
     }
 }

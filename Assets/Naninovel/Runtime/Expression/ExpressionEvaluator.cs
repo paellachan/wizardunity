@@ -51,6 +51,8 @@ namespace Naninovel
             }
         }
 
+        private const string managedTextKeyPrefix = "t_";
+        private const string managedTextScriptCategory = "Script";
         private static readonly List<MethodInfo> functions = new List<MethodInfo>();
 
         static ExpressionEvaluator ()
@@ -113,6 +115,16 @@ namespace Naninovel
 
         private static void EvaluateExpressionParameter (string name, ParameterArgs args)
         {
+            if (name.StartsWith(managedTextKeyPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var textManager = Engine.GetService<TextManager>();
+                var managedTextValue = textManager.GetRecordValue(name, managedTextScriptCategory);
+                if (string.IsNullOrEmpty(managedTextValue))
+                    Debug.LogWarning($"Failed to find a managed text value of `{name}`. Make sure the corresponding record exists in a `{managedTextScriptCategory}` managed text document.");
+                args.Result = managedTextValue;
+                return;
+            }
+
             var variableManager = Engine.GetService<CustomVariableManager>();
             if (!variableManager.VariableExists(name))
                 Debug.LogWarning($"Custom variable `{name}` doesn't exist, but its value is requested in a script expression; this could lead to evaluation errors. Make sure to assign variables with `@set` command before using them.");
@@ -147,7 +159,7 @@ namespace Naninovel
                 // Check argument type and order equality.
                 var paramTypeCheckPassed = true;
                 for (int i = 0; i < methodParams.Length; i++)
-                    if (methodParams[i].ParameterType != functionParams[0].GetType()) { paramTypeCheckPassed = false; break; }
+                    if (methodParams[i].ParameterType != functionParams[i].GetType()) { paramTypeCheckPassed = false; break; }
                 if (!paramTypeCheckPassed) continue;
 
                 args.Result = methodInfo.Invoke(null, functionParams);

@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using UnityCommon;
 using UnityEngine;
 
 namespace Naninovel
@@ -29,6 +30,11 @@ namespace Naninovel
         public Color SpeakingTint = Color.white;
         [Tooltip("Tint color to apply when the character is not speaking.")]
         public Color NotSpeakingTint = Color.gray;
+        [Tooltip("The highlight tint animation duration.")]
+        public float HighlightDuration = .35f;
+        [Tooltip("The highlight tint animation easing.")]
+        public EasingType HighlightEasing = EasingType.SmoothStep;
+
         [Tooltip("Path to the sound (SFX) to play when printing (revealing) messages and the character is author. The sound will be played on each character reveal, so make sure it's very short and sharp (without any pause/silence at the beginning of the audio clip).")]
         public string MessageSound = default;
 

@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -21,11 +22,9 @@ namespace Naninovel.Commands
     /// </example>
     public class ResetState : Command
     {
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             await Engine.GetService<StateManager>()?.ResetStateAsync();
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
     }
 }

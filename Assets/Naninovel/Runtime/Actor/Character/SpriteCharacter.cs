@@ -1,12 +1,13 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="ICharacterActor"/> implementation using <see cref="SpriteActor"/> to represent an actor.
+    /// A <see cref="ICharacterActor"/> implementation using <see cref="SpriteActor"/> to represent the actor.
     /// </summary>
     public class SpriteCharacter : SpriteActor, ICharacterActor
     {
@@ -22,7 +23,7 @@ namespace Naninovel
             bakedLookDirection = metadata.BakedLookDirection;
         }
 
-        public Task ChangeLookDirectionAsync (CharacterLookDirection lookDirection, float duration, EasingType easingType = default)
+        public Task ChangeLookDirectionAsync (CharacterLookDirection lookDirection, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             SetLookDirection(lookDirection);
             return Task.CompletedTask;

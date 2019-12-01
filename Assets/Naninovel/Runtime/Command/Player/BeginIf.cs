@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace Naninovel.Commands
         [CommandParameter(alias: NamelessParameterAlias)]
         public string Expression { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
-        public override Task ExecuteAsync ()
+        public override Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             // In case the condition is met, do nothing and continue playing the script.
             if (ExpressionEvaluator.Evaluate<bool>(Expression, LogEvalError))
@@ -31,8 +32,6 @@ namespace Naninovel.Commands
 
             return Task.CompletedTask;
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
 
         /// <summary>
         /// When invoked while inside a condtional block, will jump the playback to the appropriate command.

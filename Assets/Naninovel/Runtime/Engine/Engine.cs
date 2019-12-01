@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityCommon;
 
+// Make sure none of the assembly types are stripped when building with IL2CPP.
+[assembly: UnityEngine.Scripting.AlwaysLinkAssembly]
+[assembly: UnityEngine.Scripting.Preserve]
+
 namespace Naninovel
 {
     /// <summary>
@@ -14,13 +18,38 @@ namespace Naninovel
     /// </summary>
     public static class Engine
     {
-        public static event Action OnInitialized;
+        /// <summary>
+        /// Invoked when the engine initialization is started.
+        /// </summary>
+        public static event Action OnInitializationStarted;
+        /// <summary>
+        /// Invoked when the engine initialization is finished.
+        /// </summary>
+        public static event Action OnInitializationFinished;
 
+        /// <summary>
+        /// Composition root, containing all the other engine-related game objects.
+        /// </summary>
         public static GameObject RootObject => Behaviour.GetRootObject();
+        /// <summary>
+        /// Proxy <see cref="MonoBehaviour"/> used by the engine.
+        /// </summary>
         public static IEngineBehaviour Behaviour { get; private set; }
+        /// <summary>
+        /// Whether the engine is initialized and ready.
+        /// </summary>
         public static bool IsInitialized => initializeTCS != null && initializeTCS.Task.IsCompleted;
+        /// <summary>
+        /// Whether the engine is currently being initialized.
+        /// </summary>
         public static bool IsInitializing => initializeTCS != null && !initializeTCS.Task.IsCompleted;
+        /// <summary>
+        /// Whether to assign a specific layer to all the engine game objects.
+        /// </summary>
         public static bool OverrideObjectsLayer => config.OverrideObjectsLayer;
+        /// <summary>
+        /// When <see cref="OverrideObjectsLayer"/> is enabled, the specified layer will be assigned to all the engine game objects.
+        /// </summary>
         public static int ObjectsLayer => config.ObjectsLayer;
 
         private static EngineConfiguration config;
@@ -36,6 +65,8 @@ namespace Naninovel
             if (IsInitialized) return;
             if (IsInitializing) { await initializeTCS.Task; return; }
 
+            OnInitializationStarted?.Invoke();
+
             Engine.config = config;
             initializeTCS = new TaskCompletionSource<object>();
 
@@ -47,7 +78,7 @@ namespace Naninovel
                 await service.InitializeServiceAsync();
 
             initializeTCS.TrySetResult(null);
-            OnInitialized?.Invoke();
+            OnInitializationFinished?.Invoke();
         }
 
         /// <summary>
@@ -89,7 +120,8 @@ namespace Naninovel
                 return service as TService;
             }
 
-            Debug.LogError($"Failed to resolve service of type '{resolvingType}': service not found.");
+            if (assertResult)
+                Debug.LogError($"Failed to resolve service of type '{resolvingType}': service not found.");
             return null;
         }
 
@@ -118,7 +150,7 @@ namespace Naninovel
         /// <param name="prototype">Prototype of the object to instantiate.</param>
         /// <param name="name">Name to assign for the instantiated object. Will use name of the prototype when not provided.</param>
         /// <param name="layer">Layer to assign for the instantiated object. Will assign <see cref="ObjectsLayer"/> (when <see cref="OverrideObjectsLayer"/>, otherwise will preserve prototype's layer) when not provided or less than zero.</param>
-        public static T Instantiate<T> (T prototype, string name = null, int layer = -1) where T : UnityEngine.Object
+        public static T Instantiate<T> (T prototype, string name = default, int? layer = default) where T : UnityEngine.Object
         {
             if (Behaviour is null)
             {
@@ -132,7 +164,7 @@ namespace Naninovel
 
             if (!string.IsNullOrEmpty(name)) newObj.name = name;
 
-            if (layer > -1) gameObj.ForEachDescendant(obj => obj.layer = layer);
+            if (layer.HasValue) gameObj.ForEachDescendant(obj => obj.layer = layer.Value);
             else if (OverrideObjectsLayer) gameObj.ForEachDescendant(obj => obj.layer = ObjectsLayer);
 
             return newObj;
@@ -144,7 +176,7 @@ namespace Naninovel
         /// <param name="name">Name to assign for the instantiated object. Will use a default name when not provided.</param>
         /// <param name="layer">Layer to assign for the instantiated object. Will assign <see cref="ObjectsLayer"/> (when <see cref="OverrideObjectsLayer"/>, otherwise will preserve prototype's layer) when not provided or less than zero.</param>
         /// <param name="components">Components to add on the created object.</param>
-        public static GameObject CreateObject (string name = null, int layer = -1, params Type[] components)
+        public static GameObject CreateObject (string name = default, int? layer = default, params Type[] components)
         {
             if (Behaviour is null)
             {
@@ -158,7 +190,7 @@ namespace Naninovel
             else newObj = new GameObject(objName);
             Behaviour.AddChildObject(newObj);
 
-            if (layer > -1) newObj.ForEachDescendant(obj => obj.layer = layer);
+            if (layer.HasValue) newObj.ForEachDescendant(obj => obj.layer = layer.Value);
             else if (OverrideObjectsLayer) newObj.ForEachDescendant(obj => obj.layer = ObjectsLayer);
 
             return newObj;
@@ -169,7 +201,7 @@ namespace Naninovel
         /// </summary>
         /// <param name="name">Name to assign for the instantiated object. Will use a default name when not provided.</param>
         /// <param name="layer">Layer to assign for the instantiated object. Will assign <see cref="ObjectsLayer"/> (when <see cref="OverrideObjectsLayer"/>, otherwise will preserve prototype's layer) when not provided or less than zero.</param>
-        public static T CreateObject<T> (string name = null, int layer = -1) where T : Component
+        public static T CreateObject<T> (string name = default, int? layer = default) where T : Component
         {
             if (Behaviour is null)
             {
@@ -180,7 +212,7 @@ namespace Naninovel
             var newObj = new GameObject(name ?? typeof(T).Name);
             Behaviour.AddChildObject(newObj);
 
-            if (layer > -1) newObj.ForEachDescendant(obj => obj.layer = layer);
+            if (layer.HasValue) newObj.ForEachDescendant(obj => obj.layer = layer.Value);
             else if (OverrideObjectsLayer) newObj.ForEachDescendant(obj => obj.layer = ObjectsLayer);
 
             return newObj.AddComponent<T>();

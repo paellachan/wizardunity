@@ -10,8 +10,14 @@ namespace Naninovel
     {
         [Tooltip("The reference resolution is used to evaluate proper rendering dimensions, so that sprite assets (like backgrounds and characters) are correctly positioned on scene. As a rule of thumb, set this equal to the resolution of the background textures you make for the game.")]
         public Vector2Int ReferenceResolution = new Vector2Int(1920, 1080);
+        [Tooltip("Whether to automatically correct camera's orthographic size based on the current display aspect ratio to ensure the backgrounds and characters are position correctly.")]
+        public bool AutoCorrectOrthoSize = true;
+        [Tooltip("The orthographic size to set by default when auto correction is disabled.")]
+        public float DefaultOrthoSize = 5.35f;
         [Tooltip("Initial world position of the camera.")]
         public Vector3 InitialPosition = new Vector3(0, 0, -10);
+        [Tooltip("Whether the camera should render in orthographic (enabled) or perspective (disabled) mode by default. Has no effect when a custom camera prefab is assigned.")]
+        public bool Orthographic = true;
         [Tooltip("A prefab with a camera component to use for rendering. Will use a default one when not specified. In case you wish to set some camera properties (background color, FOV, HDR, etc) or add post-processing scripts, create a prefab with the desired camera setup and assign the prefab to this field.")]
         public Camera CustomCameraPrefab = null;
         [Tooltip("Whether to render the UI in a separate camera. This will allow to use individual configuration for the main and UI cameras and prevent post-processing (image) effects from affecting the UI at the cost of a slight rendering overhead.")]

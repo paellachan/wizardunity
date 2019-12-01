@@ -10,10 +10,6 @@ namespace Naninovel
     public abstract class ScriptLine
     {
         /// <summary>
-        /// Represents persistent hash code of the script line content in hex format.
-        /// </summary>
-        public string ContentHash => CryptoUtils.PersistentHexCode(Text.TrimFull());
-        /// <summary>
         /// Name of the naninovel script to which the line belongs.
         /// </summary>
         public readonly string ScriptName;
@@ -26,9 +22,22 @@ namespace Naninovel
         /// </summary>
         public int LineNumber => LineIndex + 1;
         /// <summary>
-        /// Text representation of the line.
+        /// Text representation of the line; potentially modified by script defines.
         /// </summary>
         public readonly string Text;
+        /// <summary>
+        /// Original text representation of the line (as it was in the source script), 
+        /// before applying any script define replacements.
+        /// </summary>
+        public readonly string LineText;
+        /// <summary>
+        /// Persistent hash code of <see cref="LineText"/> in hex format.
+        /// </summary>
+        public string LineHash => CryptoUtils.PersistentHexCode(LineText.TrimFull());
+        /// <summary>
+        /// Whether the <see cref="Text"/> of the script line is valid and has been successfully parsed.
+        /// </summary>
+        public bool Valid { get; protected set; } = true;
 
         /// <summary>
         /// A generic log message used when parsing fails.
@@ -44,6 +53,7 @@ namespace Naninovel
             ScriptName = scriptName;
             LineIndex = lineIndex;
             Text = scriptDefines != null ? ReplaceDefines(lineText, scriptDefines) : lineText;
+            LineText = lineText;
             IgnoreParseErrors = ignoreParseErrors;
         }
 

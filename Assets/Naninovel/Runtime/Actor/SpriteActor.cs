@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -34,14 +35,14 @@ namespace Naninovel
             SetVisibility(false);
         }
 
-        public override async Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default)
+        public override async Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             var previousAppearance = this.appearance;
             this.appearance = appearance;
 
             var textureResource = string.IsNullOrWhiteSpace(appearance) ? await LoadDefaultAppearanceAsync() : await LoadAppearanceAsync(appearance);
             textureResource?.Hold(this);
-            await SpriteRenderer.TransitionToAsync(textureResource, duration, easingType);
+            await SpriteRenderer.TransitionToAsync(textureResource, duration, easingType, cancellationToken: cancellationToken);
 
             // When using `wait:false` this async method won't be waited, which potentially could lead to a situation, where
             // a consequent same method will re-set the currently disposed resource.
@@ -50,16 +51,16 @@ namespace Naninovel
                 AppearanceLoader?.GetLoadedOrNull(previousAppearance)?.Release(this);
         }
 
-        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default)
+        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             // When appearance is not set (and default one is not preloaded for some reason, eg when using dynamic parameters) 
             // and revealing the actor -- attempt to load default appearance texture.
-            if (!IsVisible && isVisible && string.IsNullOrWhiteSpace(Appearance) && !defaultAppearance.IsValid)
-                await ChangeAppearanceAsync(null, 0);
+            if (!IsVisible && isVisible && string.IsNullOrWhiteSpace(Appearance) && (defaultAppearance is null || !defaultAppearance.IsValid))
+                await ChangeAppearanceAsync(null, 0, cancellationToken: cancellationToken);
 
             this.isVisible = isVisible;
 
-            await SpriteRenderer.FadeToAsync(isVisible ? TintColor.a : 0, duration, easingType);
+            await SpriteRenderer.FadeToAsync(isVisible ? TintColor.a : 0, duration, easingType, cancellationToken);
         }
 
         public override async Task HoldResourcesAsync (object holder, string appearance)
@@ -154,12 +155,12 @@ namespace Naninovel
                         texturePaths[i] = texturePaths[i].Replace($"{AppearanceLoader.PathPrefix}/", string.Empty);
 
                 // First, look for an appearance with a name, equal to actor's ID.
-                if (texturePaths.Any(t => t.EndsWithFast(Id)))
-                    return texturePaths.First(t => t.EndsWithFast(Id));
+                if (texturePaths.Any(t => t.EqualsFast(Id)))
+                    return texturePaths.First(t => t.EqualsFast(Id));
 
                 // Then, try a `Default` appearance.
-                if (texturePaths.Any(t => t.EndsWithFast("Default")))
-                    return texturePaths.First(t => t.EndsWithFast("Default"));
+                if (texturePaths.Any(t => t.EqualsFast("Default")))
+                    return texturePaths.First(t => t.EqualsFast("Default"));
 
                 // Finally, fallback to a first defined appearance.
                 return texturePaths.FirstOrDefault();

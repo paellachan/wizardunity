@@ -27,10 +27,6 @@ namespace Naninovel
         /// </summary>
         Task<IActor> AddActorAsync (string actorId);
         /// <summary>
-        /// Adds a new managed actor with the provided state.
-        /// </summary>
-        Task<IActor> AddActorAsync (ActorState state);
-        /// <summary>
         /// Removes a managed actor with the provided ID.
         /// </summary>
         void RemoveActor (string actorId);

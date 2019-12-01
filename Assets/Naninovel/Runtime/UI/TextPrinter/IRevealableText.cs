@@ -1,5 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Collections;
+using System.Threading;
 using UnityEngine;
 
 namespace Naninovel.UI
@@ -22,28 +24,16 @@ namespace Naninovel.UI
         /// </summary>
         GameObject GameObject { get; }
         /// <summary>
-        /// Whether the <see cref="Text"/> is entirely revealed and visible to the user.
-        /// </summary>
-        bool IsFullyRevealed { get; }
-        /// <summary>
         /// Progress (in 0.0 to 1.0 range) of the <see cref="Text"/> reveal process.
         /// </summary>
         float RevealProgress { get; set; }
 
         /// <summary>
-        /// Implementation should attempt to reveal next visible (not-a-tag) <see cref="Text"/> character.
+        /// Implementation should reveal next visible (not-a-tag) <see cref="Text"/> character.
         /// </summary>
-        /// <param name="revealDelay">Current reveal (print) delay.</param>
-        /// <returns>Whether reveal was a success. Should returns false when no characters are left reveal.</returns>
-        bool RevealNextChar (float revealDelay);
-        /// <summary>
-        /// Implementation should immediately reveal all the <see cref="Text"/> characters.
-        /// </summary>
-        void RevealAll ();
-        /// <summary>
-        /// Implementation should immediately hide all the <see cref="Text"/> characters.
-        /// </summary>
-        void HideAll ();
+        /// <param name="charCount">Number of chars to reveal.</param>
+        /// <param name="revealDuration">Duration of the reveal.</param>
+        IEnumerator RevealNextChar (int charCount, float revealDuration, CancellationToken cancellationToken);
         /// <summary>
         /// Implementation should return position (in world space) of the last revealed <see cref="Text"/> character.
         /// </summary>

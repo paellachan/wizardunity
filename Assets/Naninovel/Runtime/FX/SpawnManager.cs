@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -14,9 +15,6 @@ namespace Naninovel
     [InitializeAtRuntime]
     public class SpawnManager : IStatefulService<GameStateMap>
     {
-        [System.Serializable]
-        public class SpawnedObjectState { public string Path; public string[] Params; }
-
         public class SpawnedObject { public GameObject Object; public SpawnedObjectState State; }
 
         [System.Serializable]
@@ -53,16 +51,25 @@ namespace Naninovel
             var state = new GameState() {
                 SpawnedObjects = spawnedObjects.Select(o => o.State).ToList()
             };
-            stateMap.SerializeObject(state);
+            stateMap.SetState(state);
             return Task.CompletedTask;
         }
 
         public Task LoadServiceStateAsync (GameStateMap stateMap)
         {
-            var state = stateMap.DeserializeObject<GameState>() ?? new GameState();
-            if (state.SpawnedObjects != null)
+            var state = stateMap.GetState<GameState>();
+            if (state?.SpawnedObjects?.Count > 0)
+            {
+                if (spawnedObjects.Count > 0)
+                    foreach (var obj in spawnedObjects.ToList())
+                        if (!state.SpawnedObjects.Exists(o => o.Path.EqualsFast(obj.State.Path)))
+                            DestroySpawnedObject(obj.State.Path);
+
                 foreach (var objState in state.SpawnedObjects)
-                    SpawnAsync(objState.Path, objState.Params).WrapAsync();
+                    if (!IsObjectSpawned(objState.Path))
+                        SpawnAsync(objState.Path, default, objState.Params).WrapAsync();
+            }
+            else if (spawnedObjects.Count > 0) DestroyAllSpawnedObjects();
             return Task.CompletedTask;
         }
 
@@ -92,7 +99,7 @@ namespace Naninovel
         /// Used by <see cref="Commands.Spawn"/> command.
         /// </summary>
         /// <returns>Spawned object or null if not spawned.</returns>
-        public async Task<SpawnedObject> SpawnAsync (string path, params string[] parameters)
+        public async Task<SpawnedObject> SpawnAsync (string path, CancellationToken cancellationToken = default, params string[] parameters)
         {
             if (IsObjectSpawned(path))
             {
@@ -111,14 +118,14 @@ namespace Naninovel
 
             var obj = Engine.Instantiate(prefabResource.Object, path);
 
-            var spawnedObj = new SpawnedObject { Object = obj, State = new SpawnedObjectState { Path = path, Params = parameters } };
+            var spawnedObj = new SpawnedObject { Object = obj, State = new SpawnedObjectState(path, parameters) };
             spawnedObjects.Add(spawnedObj);
 
             var parameterized = obj.GetComponent<Commands.Spawn.IParameterized>();
             if (parameterized != null) parameterized.SetSpawnParameters(parameters);
 
             var awaitable = obj.GetComponent<Commands.Spawn.IAwaitable>();
-            if (awaitable != null) await awaitable.AwaitSpawnAsync();
+            if (awaitable != null) await awaitable.AwaitSpawnAsync(cancellationToken);
 
             return spawnedObj;
         }
@@ -128,7 +135,7 @@ namespace Naninovel
         /// Used by <see cref="Commands.DestroySpawned"/> command.
         /// </summary>
         /// <returns>Whether the object was found and destroyed.</returns>
-        public async Task<bool> DestroySpawnedAsync (string path, params string[] parameters)
+        public async Task<bool> DestroySpawnedAsync (string path, CancellationToken cancellationToken = default, params string[] parameters)
         {
             var spawnedObj = GetSpawnedObject(path);
             if (spawnedObj is null)
@@ -141,7 +148,9 @@ namespace Naninovel
             if (parameterized != null) parameterized.SetDestroyParameters(parameters);
 
             var awaitable = spawnedObj.Object.GetComponent<Commands.DestroySpawned.IAwaitable>();
-            if (awaitable != null) await awaitable.AwaitDestroyAsync();
+            if (awaitable != null) await awaitable.AwaitDestroyAsync(cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested) return false;
 
             return DestroySpawnedObject(path);
         }

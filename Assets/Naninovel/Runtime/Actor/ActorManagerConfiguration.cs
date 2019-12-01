@@ -11,4 +11,11 @@ namespace Naninovel
         [Tooltip("Eeasing function to use by default for all the actor modifications (changing appearance, position, tint, etc).")]
         public EasingType DefaultEasing = EasingType.Linear;
     }
+
+    public abstract class ActorManagerConfiguration<TMeta> : ActorManagerConfiguration
+        where TMeta : ActorMetadata
+    {
+        public abstract TMeta DefaultActorMetadata { get; }
+        public abstract ActorMetadataMap<TMeta> ActorMetadataMap { get; }
+    }
 }

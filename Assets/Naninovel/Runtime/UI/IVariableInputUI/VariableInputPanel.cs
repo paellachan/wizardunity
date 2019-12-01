@@ -1,31 +1,30 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
-using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Naninovel.UI
 {
-    public class VariableInputPanel : ScriptableUIBehaviour, IVariableInputUI
+    public class VariableInputPanel : CustomUI, IVariableInputUI
     {
         [SerializeField] private InputField inputField = default;
         [SerializeField] private Text summaryText = default;
         [SerializeField] private Button submitButton = default;
 
-        private ScriptPlayer Player => Engine.GetService<ScriptPlayer>();
-        private CustomVariableManager VariableMngr => Engine.GetService<CustomVariableManager>();
+        private ScriptPlayer scriptPlayer;
+        private CustomVariableManager variableManager;
+        private InputManager inputManager;
         private string variableName;
         private bool playOnSubmit;
 
-        public Task InitializeAsync () => Task.CompletedTask;
-
-        public void Show (string variableName, string summary, bool playOnSubmit)
+        public void Show (string variableName, string summary, string predefinedValue, bool playOnSubmit)
         {
             this.variableName = variableName;
             this.playOnSubmit = playOnSubmit;
             summaryText.text = summary ?? string.Empty;
             summaryText.gameObject.SetActive(!string.IsNullOrWhiteSpace(summary));
+            inputField.text = predefinedValue ?? string.Empty;
 
             Show();
         }
@@ -34,6 +33,10 @@ namespace Naninovel.UI
         {
             base.Awake();
             this.AssertRequiredObjects(inputField, summaryText, submitButton);
+
+            scriptPlayer = Engine.GetService<ScriptPlayer>();
+            variableManager = Engine.GetService<CustomVariableManager>();
+            inputManager = Engine.GetService<InputManager>();
 
             submitButton.interactable = false;
         }
@@ -44,6 +47,7 @@ namespace Naninovel.UI
 
             submitButton.onClick.AddListener(HandleSubmit);
             inputField.onValueChanged.AddListener(HandleInputChanged);
+            inputManager.AddBlockingUI(this);
         }
 
         protected override void OnDisable ()
@@ -52,6 +56,7 @@ namespace Naninovel.UI
 
             submitButton.onClick.RemoveListener(HandleSubmit);
             inputField.onValueChanged.RemoveListener(HandleInputChanged);
+            inputManager.RemoveBlockingUI(this);
         }
 
         private void HandleInputChanged (string text)
@@ -59,15 +64,15 @@ namespace Naninovel.UI
             submitButton.interactable = !string.IsNullOrWhiteSpace(text);
         }
 
-        private async void HandleSubmit ()
+        private void HandleSubmit ()
         {
-            VariableMngr.SetVariableValue(variableName, inputField.text);
+            variableManager.SetVariableValue(variableName, inputField.text);
 
             if (playOnSubmit)
             {
                 // Attempt to select and play next command.
-                await Player.SelectNextAsync();
-                Player.Play();
+                var nextIndex = scriptPlayer.PlayedIndex + 1;
+                scriptPlayer.Play(nextIndex);
             }
 
             Hide();

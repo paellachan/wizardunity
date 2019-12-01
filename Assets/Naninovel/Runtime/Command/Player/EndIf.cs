@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -10,7 +11,6 @@ namespace Naninovel.Commands
     /// </summary>
     public class EndIf : Command
     {
-        public override Task ExecuteAsync () => Task.CompletedTask;
-        public override Task UndoAsync () => Task.CompletedTask;
+        public override Task ExecuteAsync (CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

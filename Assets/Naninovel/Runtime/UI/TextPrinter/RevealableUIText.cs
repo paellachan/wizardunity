@@ -1,5 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Collections;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,21 +32,24 @@ namespace Naninovel.UI
             }
         }
 
-        public string Text { get => text; set { text = value; rebuildPending = rebuildPending || rectTransform.hasChanged; } }
-        public Color TextColor { get => color; set => color = value; }
-        public GameObject GameObject => gameObject;
-        public bool IsFullyRevealed => !rebuildPending && RevealProgress >= 1f;
-        public float RevealProgress { get => GetRevealProgress(); set => SetRevealProgress(value); }
+        public virtual string Text { get => text; set { text = value; rebuildPending = rebuildPending || rectTransform.hasChanged; } }
+        public virtual Color TextColor { get => color; set => color = value; }
+        public virtual GameObject GameObject => gameObject;
+        public virtual float RevealProgress { get => GetRevealProgress(); set => SetRevealProgress(value); }
 
-        protected int LastRevealedVisibleCharIndex { get; private set; }
-        protected int LastVisibleCharIndex { get; private set; }
-        protected Transform CanvasTransform => canvasTransformCache ? canvasTransformCache : (canvasTransformCache = canvas.GetComponent<Transform>());
+        protected virtual int LastRevealedVisibleCharIndex { get; private set; }
+        protected virtual int LastVisibleCharIndex { get; private set; }
+        protected virtual Transform CanvasTransform => canvasTransformCache ? canvasTransformCache : (canvasTransformCache = canvas.GetComponent<Transform>());
+        protected virtual float SlideProgress => slideClipRect && lastRevealDuration > 0 ? Mathf.Clamp01((Time.time - lastRevealTime) / lastRevealDuration) : 1f;
 
         [Tooltip("Width (in pixels) of the gradient fade near the reveal border.")]
         [SerializeField] private float revealFadeWidth = 100f;
         [Tooltip("Whether to smoothly reveal the text. Disable for the `typewriter` effect.")]
         [SerializeField] private bool slideClipRect = true;
+        [Tooltip("How much to slant the reveal rect to compensate for italic characters; 10 is usually enough for most fonts.\n\nNotice, that enabling the slanting (value greater than zero) would introduce minor reveal effect artifacts. TMPro printers are not affected by this issue, so consider using them instead.")]
+        [SerializeField] private float italicSlantAngle = 0f;
 
+        private const string textShaderName = "Naninovel/RevealableText";
         private static readonly int lineClipRectPropertyId = Shader.PropertyToID("_LineClipRect");
         private static readonly int charClipRectPropertyId = Shader.PropertyToID("_CharClipRect");
         private static readonly int charFadeWidthPropertyId = Shader.PropertyToID("_CharFadeWidth");
@@ -55,43 +60,38 @@ namespace Naninovel.UI
         private Vector3[] canvasCorners = new Vector3[4];
         private Vector4 curLineClipRect, curCharClipRect;
         private float curCharFadeWidth, curCharSlantAngle;
-        private CharInfo revealStartChar;
-        private float lastRevealDelay, lastRevealTime, lastRevealClipX, lastRevealFadeWidth;
-        private bool rebuildPending, revealAllAfterRebuild;
+        private CharInfo revealStartChar = CharInfo.Invalid;
+        private float lastRevealDuration, lastRevealTime, lastCharClipRectX, lastCharFadeWidth;
+        private bool rebuildPending;
+        private float revealAfterRebuild = -1;
         private Vector3 positionLastFrame;
 
-        public void RevealAll ()
+        public IEnumerator RevealNextChar (int charCount, float revealDuration, CancellationToken cancellationToken)
         {
-            if (rebuildPending) revealAllAfterRebuild = true;
-            else SetLastRevealedVisibleCharIndex(LastVisibleCharIndex);
-        }
-
-        public void HideAll ()
-        {
-            SetLastRevealedVisibleCharIndex(-1);
-        }
-
-        public bool RevealNextChar (float revealDelay)
-        {
-            // While rebuild is pending, we can't rely on visible char indexes, so make the caller wait.
-            if (rebuildPending) return true;
-
-            lastRevealDelay = Mathf.Max(revealDelay, 0);
-            
-            if (LastRevealedVisibleCharIndex >= LastVisibleCharIndex)
-                return false;
-
-            // Skip invisible characters (eg, formating tags).
-            var nextVisibleCharIndex = FindNextVisibleCharIndex(LastRevealedVisibleCharIndex);
-            if (nextVisibleCharIndex == -1) // No visible characters left to reveal.
+            for (int i = 0; i < charCount; i++)
             {
-                RevealAll();
-                return false;
+                if (LastRevealedVisibleCharIndex >= LastVisibleCharIndex) yield break;
+
+                // While rebuild is pending, we can't rely on visible char indexes, so wait.
+                while (rebuildPending) yield return null;
+
+                // Skip invisible characters (eg, formating tags).
+                var nextVisibleCharIndex = FindNextVisibleCharIndex(LastRevealedVisibleCharIndex);
+                if (nextVisibleCharIndex == -1) // No visible characters left to reveal.
+                {
+                    RevealAll();
+                    yield break;
+                }
+
+                lastRevealDuration = Mathf.Max(revealDuration, 0);
+                lastRevealTime = Time.time;
+
+                SetLastRevealedVisibleCharIndex(nextVisibleCharIndex);
+
+                // Don't return until current slide is finished.
+                while (slideClipRect && SlideProgress < 1 && !cancellationToken.IsCancellationRequested)
+                    yield return null;
             }
-
-            SetLastRevealedVisibleCharIndex(nextVisibleCharIndex);
-
-            return true;
         }
 
         public Vector2 GetLastRevealedCharPosition ()
@@ -118,15 +118,17 @@ namespace Naninovel.UI
             LastVisibleCharIndex = FindLastVisibleCharIndex();
             // Set current last revealed char as the start position for the reveal effect to 
             // prevent it from affecting this char again when resuming the revealing without resetting the text.
-            revealStartChar = GetVisibleCharAt(LastRevealedVisibleCharIndex);
+            if (RevealProgress == 0) // Prevent flickering when starting to reveal first line.
+                revealStartChar = CharInfo.Invalid;
+            else revealStartChar = GetVisibleCharAt(LastRevealedVisibleCharIndex);
 
             rebuildPending = false;
 
-            if (revealAllAfterRebuild)
+            if (revealAfterRebuild != -1)
             {
-                RevealAll();
+                SetRevealProgress(revealAfterRebuild);
                 UpdateClipRects();
-                revealAllAfterRebuild = false;
+                revealAfterRebuild = -1;
             }
         }
 
@@ -135,7 +137,7 @@ namespace Naninovel.UI
             base.Start();
             if (!Application.isPlaying) return; // Text : ... : Graphic has [ExecuteInEditMode]
 
-            material = Instantiate(material);
+            material = new Material(Shader.Find(textShaderName));
             positionLastFrame = transform.position;
         }
 
@@ -157,16 +159,15 @@ namespace Naninovel.UI
 
             if (slideClipRect)
             {
-                var slideProgress = lastRevealDelay <= 0 ? 1f : (Time.time - lastRevealTime) / lastRevealDelay;
-                var slidedCharClipRectX = Mathf.Lerp(lastRevealClipX, curCharClipRect.x, slideProgress);
+                var slidedCharClipRectX = Mathf.Lerp(lastCharClipRectX, curCharClipRect.x, SlideProgress);
                 var slidedCharClipRect = new Vector4(slidedCharClipRectX, curCharClipRect.y, curCharClipRect.z, curCharClipRect.w);
-                var slidedFadeWidth = Mathf.Lerp(lastRevealFadeWidth, curCharFadeWidth, slideProgress);
+                var slidedFadeWidth = Mathf.Lerp(lastCharFadeWidth, curCharFadeWidth, SlideProgress);
                 SetMaterialProperties(curLineClipRect, slidedCharClipRect, slidedFadeWidth, curCharSlantAngle);
             }
             else SetMaterialProperties(curLineClipRect, curCharClipRect, curCharFadeWidth, curCharSlantAngle);
 
-            //Debug.DrawLine(CanvasTransform.TransformPoint(new Vector3(curLineClipRect.x, curLineClipRect.y)), CanvasTransform.TransformPoint(new Vector3(curLineClipRect.z, curLineClipRect.w)), Color.blue);
-            //Debug.DrawLine(CanvasTransform.TransformPoint(new Vector3(curCharClipRect.x, curCharClipRect.y)), CanvasTransform.TransformPoint(new Vector3(curCharClipRect.z, curCharClipRect.w)), Color.red);
+            //Debug.DrawLine(CanvasTransform.TransformPoint(new Vector3(curLineClipRect.x, curLineClipRect.y)), CanvasTransform.TransformPoint(new Vector3(curLineClipRect.z, curLineClipRect.w)), Color.green);
+            //Debug.DrawLine(CanvasTransform.TransformPoint(new Vector3(curCharClipRect.x, curCharClipRect.y)), CanvasTransform.TransformPoint(new Vector3(curCharClipRect.z, curCharClipRect.w)), Color.yellow);
         }
 
         private void LateUpdate ()
@@ -178,6 +179,21 @@ namespace Naninovel.UI
             }
 
             positionLastFrame = transform.position;
+        }
+
+        private void RevealAll ()
+        {
+            if (rebuildPending) revealAfterRebuild = 1f;
+            else SetLastRevealedVisibleCharIndex(LastVisibleCharIndex);
+            lastRevealDuration = 0f; // Force the slide to complete instantly.
+        }
+
+        private void HideAll ()
+        {
+            SetLastRevealedVisibleCharIndex(-1);
+            lastRevealDuration = 0f; // Force the slide to complete instantly.
+            revealStartChar = CharInfo.Invalid; // Invalidate the reveal start position.
+            Update(); // Otherwise the unrevealed yet text could be visible for a moment.
         }
 
         private void SetMaterialProperties (Vector4 lineClipRect, Vector4 charClipRect, float charFadeWidth, float charSlantAngle)
@@ -192,32 +208,43 @@ namespace Naninovel.UI
         {
             if (LastRevealedVisibleCharIndex == visibleCharIndex) return;
 
-            if (slideClipRect)
-            {
-                var curChar = GetVisibleCharAt(LastRevealedVisibleCharIndex);
-                var nextChar = GetVisibleCharAt(visibleCharIndex);
-                var resetSlide = visibleCharIndex == LastVisibleCharIndex || visibleCharIndex == -1 || curChar.LineIndex != nextChar.LineIndex;
-                if (visibleCharIndex < 0) lastRevealClipX = curLineClipRect.x; // Clearing the content and next char is unavailable, start at the line clip rect.
-                else if (resetSlide) // Use x position of the char clip rect that is going to be calculated for the next revealed char (at the UpdateClipRects).
-                    lastRevealClipX = GetTextCornersInCanvasSpace().x + (nextChar.Origin + rectTransform.pivot.x * cachedTextGenerator.rectExtents.width) / pixelsPerUnit;
-                else lastRevealClipX = curCharClipRect.x; // Otherwise, use char clip rect.
-                lastRevealFadeWidth = resetSlide ? 0 : curCharFadeWidth;
-                lastRevealTime = Time.time;
-            }
+            var curChar = GetVisibleCharAt(LastRevealedVisibleCharIndex);
+            var nextChar = GetVisibleCharAt(visibleCharIndex);
+
+            lastCharClipRectX = curChar.LineIndex < 0 ? curLineClipRect.x : curCharClipRect.x;
+            lastCharFadeWidth = curCharFadeWidth;
 
             LastRevealedVisibleCharIndex = visibleCharIndex;
             UpdateClipRects();
+
+            // Reset the slide when switching lines.
+            if (slideClipRect && curChar.LineIndex != nextChar.LineIndex)
+            {
+                lastCharClipRectX = GetTextCornersInCanvasSpace().x;
+                lastCharFadeWidth = curCharFadeWidth;
+            }
         }
 
         private float GetRevealProgress ()
         {
-            if (LastVisibleCharIndex <= 0) return LastRevealedVisibleCharIndex >= 0 ? 1f : 0f;
-            return Mathf.Clamp01(LastRevealedVisibleCharIndex / (float)LastVisibleCharIndex);
+            var result = 0f;
+            if (LastVisibleCharIndex <= 0) result = LastRevealedVisibleCharIndex >= 0 ? 1f : 0f;
+            result = Mathf.Clamp01(LastRevealedVisibleCharIndex / (float)LastVisibleCharIndex);
+            if (rebuildPending) result = Mathf.Clamp(result, 0, .999f);
+            return result;
         }
 
         private void SetRevealProgress (float revealProgress)
         {
-            revealProgress = Mathf.Clamp01(revealProgress);
+            if (revealProgress >= 1) { RevealAll(); return; }
+            else if (revealProgress <= 0) { HideAll(); return; }
+
+            if (rebuildPending)
+            {
+                revealAfterRebuild = revealProgress;
+                return;
+            }
+
             var charIndex = Mathf.CeilToInt(LastVisibleCharIndex * revealProgress);
             SetLastRevealedVisibleCharIndex(charIndex);
         }
@@ -236,24 +263,26 @@ namespace Naninovel.UI
             }
 
             var currentChar = GetVisibleCharAt(LastRevealedVisibleCharIndex);
+            var lineFirstChar = GetVisibleCharAt(AbsoluteToVisibleCharIndex(currentChar.Line.startCharIdx));
+            var lineLastChar = GetLastVisibleCharAtLine(currentChar.Line.startCharIdx, currentChar.LineIndex);
+
             var lineTopY = currentChar.Ascender + (rectTransform.pivot.y - 1f) * cachedTextGenerator.rectExtents.height;
             var lineBottomY = lineTopY - currentChar.Line.height;
-            var charRightX = currentChar.XAdvance + rectTransform.pivot.x * cachedTextGenerator.rectExtents.width;
+            var clipPosX = currentChar.XAdvance + rectTransform.pivot.x * cachedTextGenerator.rectExtents.width;
 
             curLineClipRect = fullClipRect + new Vector4(0, 0, 0, lineBottomY / pixelsPerUnit);
-            curCharClipRect = fullClipRect + new Vector4(charRightX / pixelsPerUnit, 0, 0, lineTopY / pixelsPerUnit);
+            curCharClipRect = fullClipRect + new Vector4(clipPosX / pixelsPerUnit, 0, 0, lineTopY / pixelsPerUnit);
             curCharClipRect.y = curLineClipRect.w;
 
-            var lineFirstChar = GetVisibleCharAt(AbsoluteToVisibleCharIndex(currentChar.Line.startCharIdx));
-            var lineLastChar = GetLastVisibleCharAtLine(lineFirstChar.CharIndex, currentChar.LineIndex);
-            // When starting from a new line, add extra fade width to fade the first character.
+            // We need to limit the fade width, so that it doesn't stretch before the first (startLimit) and last (endLimit) chars in the line.
+            // Additionally, we need to handle cases when appending text, so that last revealed char won't get hidden again when resuming (revealStartChar is used instead of lineFirstChar).
             var startLimit = currentChar.LineIndex == revealStartChar.LineIndex ? currentChar.Origin - revealStartChar.Origin : currentChar.XAdvance - lineFirstChar.Origin;
-            var finishLimit = lineLastChar.Origin - currentChar.Origin;
-            var widthLimit = Mathf.Min(Mathf.Abs(startLimit), Mathf.Abs(finishLimit));
+            var endLimit = lineLastChar.XAdvance - currentChar.XAdvance;
+            var widthLimit = Mathf.Min(startLimit, endLimit);
             curCharFadeWidth = Mathf.Clamp(revealFadeWidth, 0f, widthLimit);
 
             // TODO: Find a way to find the slant (italic) angle of the last revealed character.
-            curCharSlantAngle = 10f;
+            curCharSlantAngle = italicSlantAngle;
         }
 
         private Vector4 GetTextCornersInCanvasSpace ()
@@ -277,19 +306,22 @@ namespace Naninovel.UI
             return new CharInfo(requestedVisibleCharIndex, lineIndex, visibleCharInfo, lineInfo);
         }
 
-        private CharInfo GetLastVisibleCharAtLine (int firstVisibleCharInLineIndex, int lineIndex)
+        private CharInfo GetLastVisibleCharAtLine (int firstAbsoluteCharInLineIndex, int lineIndex)
         {
-            var curVisibleIndex = -1;
-            for (int i = 0; i < cachedTextGenerator.characterCount; i++)
+            var curVisibleCharIndex = -1;
+            var resultIndex = -1;
+            for (var i = 0; i < cachedTextGenerator.characterCount; i++)
             {
-                if (cachedTextGenerator.characters[i].charWidth == 0f) continue;
-                curVisibleIndex++;
-                if (curVisibleIndex < firstVisibleCharInLineIndex) continue;
+                if (cachedTextGenerator.characters[i].charWidth > 0)
+                    curVisibleCharIndex++;
+                if (i < firstAbsoluteCharInLineIndex) continue;
 
                 FindLineContainingChar(i, out var curLindeIndex);
-                if (lineIndex != curLindeIndex) break;
+                if (lineIndex < curLindeIndex) break;
+
+                resultIndex = curVisibleCharIndex;
             }
-            return GetVisibleCharAt(curVisibleIndex);
+            return GetVisibleCharAt(resultIndex);
         }
 
         private UILineInfo FindLineContainingChar (int absoluteCharIndex, out int lineIndex)

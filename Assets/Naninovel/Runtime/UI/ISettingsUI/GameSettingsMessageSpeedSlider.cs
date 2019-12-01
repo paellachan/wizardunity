@@ -19,12 +19,12 @@ namespace Naninovel.UI
         {
             base.Start();
 
-            UIComponent.value = printerMngr.PrintSpeed;
+            UIComponent.value = printerMngr.BaseRevealSpeed;
         }
 
         protected override void OnValueChanged (float value)
         {
-            printerMngr.SetPrintSpeed(value);
+            printerMngr.BaseRevealSpeed = value;
         }
     }
 }

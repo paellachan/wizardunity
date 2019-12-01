@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -13,8 +14,14 @@ namespace Naninovel
     /// Manages character actors in the ortho mode.
     /// </summary>
     [InitializeAtRuntime]
-    public class CharacterManager : OrthoActorManager<ICharacterActor, CharacterState>
+    public class CharacterManager : OrthoActorManager<ICharacterActor, CharacterState, CharacterMetadata, CharactersConfiguration>
     {
+        [Serializable]
+        private class GameState
+        {
+            public SerializableLiteralStringMap CharIdToAvatarPathMap = new SerializableLiteralStringMap();
+        }
+
         /// <summary>
         /// Invoked when avatar texture of a managed character is changed.
         /// </summary>
@@ -23,23 +30,30 @@ namespace Naninovel
         /// <summary>
         /// Whether to perform <see cref="ArrangeCharactersAsync(float, EasingType)"/> when adding actors.
         /// </summary>
-        public bool AutoArrangeOnAdd => config.AutoArrangeOnAdd;
+        public bool AutoArrangeOnAdd => Configuration.AutoArrangeOnAdd;
 
-        private readonly CharactersConfiguration config;
         private readonly TextManager textManager;
         private readonly LocalizationManager localizationManager;
         private readonly CustomVariableManager customVariableManager;
-        private readonly Dictionary<string, string> charIdToAvatarPathMap = new Dictionary<string, string>();
+        private readonly TextPrinterManager textPrinterManager;
+        private SerializableLiteralStringMap charIdToAvatarPathMap = new SerializableLiteralStringMap();
         private LocalizableResourceLoader<Texture2D> avatarTextureLoader;
 
         public CharacterManager (CharactersConfiguration config, CameraManager orthoCamera, TextManager textManager, 
-            LocalizationManager localizationManager, CustomVariableManager customVariableManager)
+            LocalizationManager localizationManager, CustomVariableManager customVariableManager, TextPrinterManager textPrinterManager)
             : base(config, orthoCamera)
         {
-            this.config = config;
             this.textManager = textManager;
             this.localizationManager = localizationManager;
             this.customVariableManager = customVariableManager;
+            this.textPrinterManager = textPrinterManager;
+        }
+
+        public override void ResetService ()
+        {
+            base.ResetService();
+
+            charIdToAvatarPathMap.Clear();
         }
 
         public override async Task InitializeServiceAsync ()
@@ -47,7 +61,9 @@ namespace Naninovel
             await base.InitializeServiceAsync();
 
             var providerMngr = Engine.GetService<ResourceProviderManager>();
-            avatarTextureLoader = new LocalizableResourceLoader<Texture2D>(config.AvatarLoader, providerMngr, localizationManager);
+            avatarTextureLoader = new LocalizableResourceLoader<Texture2D>(Configuration.AvatarLoader, providerMngr, localizationManager);
+
+            textPrinterManager.OnPrintTextStarted += HandlePrintTextStarted;
 
             // TODO: Load only the required avatar textures.
             await avatarTextureLoader.LoadAllAsync();
@@ -57,7 +73,43 @@ namespace Naninovel
         {
             base.DestroyService();
 
+            if (textPrinterManager != null)
+                textPrinterManager.OnPrintTextStarted -= HandlePrintTextStarted;
+
             avatarTextureLoader.UnloadAll();
+        }
+
+        public override async Task SaveServiceStateAsync (GameStateMap stateMap)
+        {
+            await base.SaveServiceStateAsync(stateMap);
+
+            var gameState = new GameState() {
+                CharIdToAvatarPathMap = new SerializableLiteralStringMap(charIdToAvatarPathMap)
+            };
+            stateMap.SetState(gameState);
+        }
+
+        public override async Task LoadServiceStateAsync (GameStateMap stateMap)
+        {
+            await base.LoadServiceStateAsync(stateMap);
+
+            var state = stateMap.GetState<GameState>();
+            if (state is null)
+            {
+                if (charIdToAvatarPathMap.Count > 0)
+                    foreach (var charId in charIdToAvatarPathMap.Keys.ToList())
+                        RemoveAvatarTextureFor(charId);
+                return;
+            }
+
+            // Remove non-existing avatar mappings.
+            if (charIdToAvatarPathMap.Count > 0)
+                foreach (var charId in charIdToAvatarPathMap.Keys.ToList())
+                    if (!state.CharIdToAvatarPathMap.ContainsKey(charId))
+                        RemoveAvatarTextureFor(charId);
+            // Add new or changed avatar mappings.
+            foreach (var kv in state.CharIdToAvatarPathMap)
+                SetAvatarTexturePathFor(kv.Key, kv.Value);
         }
 
         /// <summary>
@@ -130,7 +182,7 @@ namespace Naninovel
         /// Will return null when not found.
         /// </summary>
         /// <remarks>
-        /// When using a non-default locale, will first attempt to find a corresponding record 
+        /// When using a non-source locale, will first attempt to find a corresponding record 
         /// in the managed text documents, and, if not found, check the character metadata.
         /// In case the display name is found and is wrapped in curely braces, attempt to extract the value 
         /// from a custom variable.
@@ -141,11 +193,11 @@ namespace Naninovel
 
             var displayName = default(string);
 
-            if (!localizationManager.UsingDefaulLocale)
+            if (!localizationManager.SourceLocaleSelected)
                 displayName = textManager.GetRecordValue(characterId, CharactersConfiguration.DisplayNamesCategory);
 
             if (string.IsNullOrEmpty(displayName))
-                displayName = GetActorMetadata<CharacterMetadata>(characterId)?.DisplayName;
+                displayName = GetActorMetadata(characterId)?.DisplayName;
 
             if (!string.IsNullOrEmpty(displayName) && displayName.StartsWithFast("{") && displayName.EndsWithFast("}"))
             {
@@ -173,7 +225,7 @@ namespace Naninovel
         /// <summary>
         /// Evenly distribute visible controlled characters positions over specified time.
         /// </summary>
-        public async Task ArrangeCharactersAsync (float duration = 0, EasingType easingType = default)
+        public async Task ArrangeCharactersAsync (float duration = 0, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             var actors = ManagedActors?.Values?.Where(c => c.IsVisible)?.OrderBy(c => c.Id)?.ToList();
             if (actors is null || actors.Count == 0) return;
@@ -200,14 +252,21 @@ namespace Naninovel
                     unevenCount++;
                 }
                 var lookDir = LookAtOriginDirection(posX);
-                tasks.Add(actors[i].ChangeLookDirectionAsync(lookDir, duration, easingType));
-                tasks.Add(actors[i].ChangePositionXAsync(posX, duration, easingType));
+                tasks.Add(actors[i].ChangeLookDirectionAsync(lookDir, duration, easingType, cancellationToken));
+                tasks.Add(actors[i].ChangePositionXAsync(posX, duration, easingType, cancellationToken));
             }
             await Task.WhenAll(tasks);
         }
 
-        public override ActorMetadata GetActorMetadata (string actorId) =>
-            config.Metadata.GetMetaById(actorId) ?? config.DefaultMetadata;
+        public override void RemoveActor (string actorId)
+        {
+            base.RemoveActor(actorId);
+
+            // Unload generic character's resources.
+            var meta = GetActorMetadata(actorId);
+            if (!string.IsNullOrEmpty(meta.MessageSound))
+                Engine.GetService<AudioManager>().ReleaseAudioResources(this, meta.MessageSound);
+        }
 
         protected override async Task<ICharacterActor> ConstructActorAsync (string actorId)
         {
@@ -217,21 +276,22 @@ namespace Naninovel
             actor.Position = GlobalSceneOrigin;
 
             // Preload generic character's resources.
-            var meta = GetActorMetadata<CharacterMetadata>(actorId);
+            var meta = GetActorMetadata(actorId);
             if (!string.IsNullOrEmpty(meta.MessageSound))
                 await Engine.GetService<AudioManager>().HoldAudioResourcesAsync(this, meta.MessageSound);
 
             return actor;
         }
 
-        public override void RemoveActor (string actorId)
+        private void HandlePrintTextStarted (PrintTextArgs args)
         {
-            base.RemoveActor(actorId);
-
-            // Unload generic character's resources.
-            var meta = GetActorMetadata<CharacterMetadata>(actorId);
-            if (!string.IsNullOrEmpty(meta.MessageSound))
-                Engine.GetService<AudioManager>().ReleaseAudioResources(this, meta.MessageSound);
+            foreach (var actor in ManagedActors.Values)
+            {
+                var actorMeta = GetActorMetadata(actor.Id);
+                if (!actorMeta.HighlightWhenSpeaking) continue;
+                var tintColor = actor.Id == args.AuthorId ? actorMeta.SpeakingTint : actorMeta.NotSpeakingTint;
+                actor.ChangeTintColorAsync(tintColor, actorMeta.HighlightDuration, actorMeta.HighlightEasing).WrapAsync();
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using UnityEngine;
 
 namespace Naninovel
 {
@@ -9,18 +10,20 @@ namespace Naninovel
     [System.Serializable]
     public class CharacterState : ActorState<ICharacterActor>
     {
-        public CharacterLookDirection LookDirection;
-
-        public override void ApplyToActor (ICharacterActor actor)
-        {
-            base.ApplyToActor(actor);
-            actor.LookDirection = LookDirection;
-        }
+        [SerializeField] private CharacterLookDirection lookDirection = default;
 
         public override void OverwriteFromActor (ICharacterActor actor)
         {
             base.OverwriteFromActor(actor);
-            LookDirection = actor.LookDirection;
+
+            lookDirection = actor.LookDirection;
+        }
+
+        public override void ApplyToActor (ICharacterActor actor)
+        {
+            base.ApplyToActor(actor);
+
+            actor.LookDirection = lookDirection;
         }
     }
 }

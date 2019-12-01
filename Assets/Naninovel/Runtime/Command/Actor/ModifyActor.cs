@@ -2,19 +2,20 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
 
 namespace Naninovel.Commands
 {
-    public abstract class ModifyActor<TActor, TState, TManager> : Command, Command.IPreloadable 
+    public abstract class ModifyActor<TActor, TState, TMeta, TConfig, TManager> : Command, Command.IPreloadable 
         where TActor : IActor
         where TState : ActorState<TActor>, new()
-        where TManager : ActorManager<TActor, TState>
+        where TMeta : ActorMetadata
+        where TConfig : ActorManagerConfiguration<TMeta>
+        where TManager : ActorManager<TActor, TState, TMeta, TConfig>
     {
-        private struct UndoData { public bool Executed; public TState State; }
-
         /// <summary>
         /// ID of the actor to modify.
         /// </summary>
@@ -29,9 +30,10 @@ namespace Naninovel.Commands
         /// Visibility status to set for the modified actor.
         /// </summary>
         [CommandParameter(optional: true)]
-        public virtual bool? IsVisible { get => GetDynamicParameter<bool?>(null); set => SetDynamicParameter(value); }
+        public virtual bool? Visible { get => GetDynamicParameter<bool?>(null); set => SetDynamicParameter(value); }
         /// <summary>
-        /// Position (in world space) to set for the modified actor.
+        /// Position (in world space) to set for the modified actor. 
+        /// Use Z-component (third member) to move (sort) by depth while in ortho mode.
         /// </summary>
         [CommandParameter(optional: true)]
         public virtual float?[] Position { get => GetDynamicParameter<float?[]>(null); set => SetDynamicParameter(value); }
@@ -68,7 +70,6 @@ namespace Naninovel.Commands
 
         protected virtual TManager ActorManager => actorManagerCache ?? (actorManagerCache = Engine.GetService<TManager>());
 
-        private UndoData undoData;
         private TManager actorManagerCache;
 
         public virtual async Task HoldResourcesAsync ()
@@ -85,7 +86,7 @@ namespace Naninovel.Commands
                 ActorManager.GetActor(Id).ReleaseResources(this, Appearance);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             if (ActorManager is null)
             {
@@ -100,88 +101,69 @@ namespace Naninovel.Commands
             }
 
             var actor = await ActorManager.GetOrAddActorAsync(Id);
-
-            undoData.Executed = true;
-            undoData.State = ActorManager.GetActorState(actor.Id);
+            if (cancellationToken.IsCancellationRequested) return;
 
             var easingType = ActorManager.DefaultEasingType;
             if (!string.IsNullOrEmpty(EasingTypeName) && !Enum.TryParse(EasingTypeName, true, out easingType))
                 Debug.LogWarning($"Failed to parse `{EasingTypeName}` easing.");
-            await ApplyModificationsAsync(actor, easingType);
+            await ApplyModificationsAsync(actor, easingType, cancellationToken);
         }
 
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            var actor = ActorManager.GetActor(undoData.State?.Id);
-            if (actor == null)
-            {
-                Debug.LogWarning($"Actor `{undoData.State?.Id}` not found while undoing `{typeof(ModifyActor<TActor, TState, TManager>).Name}` task.");
-                return Task.CompletedTask;
-            }
-
-            undoData.State.ApplyToActor(actor);
-
-            undoData = default;
-            return Task.CompletedTask;
-        }
-
-        protected virtual async Task ApplyModificationsAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyModificationsAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             // When visibility is not explicitly specified assume user would like to show the actor anyway.
-            if (!IsVisible.HasValue) IsVisible = true;
+            if (!Visible.HasValue) Visible = true;
 
             await Task.WhenAll(
-                    ApplyAppearanceModificationAsync(actor, easingType),
-                    ApplyVisibilityModificationAsync(actor, easingType),
-                    ApplyPositionModificationAsync(actor, easingType),
-                    ApplyRotationModificationAsync(actor, easingType),
-                    ApplyScaleModificationAsync(actor, easingType),
-                    ApplyTintColorModificationAsync(actor, easingType)
+                    ApplyAppearanceModificationAsync(actor, easingType, cancellationToken),
+                    ApplyVisibilityModificationAsync(actor, easingType, cancellationToken),
+                    ApplyPositionModificationAsync(actor, easingType, cancellationToken),
+                    ApplyRotationModificationAsync(actor, easingType, cancellationToken),
+                    ApplyScaleModificationAsync(actor, easingType, cancellationToken),
+                    ApplyTintColorModificationAsync(actor, easingType, cancellationToken)
                 );
         }
 
-        protected virtual async Task ApplyAppearanceModificationAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyAppearanceModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(Appearance)) return;
-            await actor.ChangeAppearanceAsync(Appearance, Duration, easingType);
+            await actor.ChangeAppearanceAsync(Appearance, Duration, easingType, cancellationToken);
         }
 
-        protected virtual async Task ApplyVisibilityModificationAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyVisibilityModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
-            if (IsVisible is null) return;
-            await actor.ChangeVisibilityAsync(IsVisible.Value, Duration, easingType);
+            if (Visible is null) return;
+            await actor.ChangeVisibilityAsync(Visible.Value, Duration, easingType, cancellationToken);
         }
 
-        protected virtual async Task ApplyPositionModificationAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyPositionModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (Position is null) return;
             await actor.ChangePositionAsync(new Vector3(
                     Position.ElementAtOrDefault(0) ?? actor.Position.x,
                     Position.ElementAtOrDefault(1) ?? actor.Position.y,
-                    Position.ElementAtOrDefault(2) ?? actor.Position.z), Duration, easingType);
+                    Position.ElementAtOrDefault(2) ?? actor.Position.z), Duration, easingType, cancellationToken);
         }
 
-        protected virtual async Task ApplyRotationModificationAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyRotationModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (Rotation is null) return;
             await actor.ChangeRotationAsync(Quaternion.Euler(
                     Rotation.ElementAtOrDefault(0) ?? actor.Rotation.eulerAngles.x,
                     Rotation.ElementAtOrDefault(1) ?? actor.Rotation.eulerAngles.y,
-                    Rotation.ElementAtOrDefault(2) ?? actor.Rotation.eulerAngles.z), Duration, easingType);
+                    Rotation.ElementAtOrDefault(2) ?? actor.Rotation.eulerAngles.z), Duration, easingType, cancellationToken);
         }
 
-        protected virtual async Task ApplyScaleModificationAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyScaleModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (Scale is null) return;
             await actor.ChangeScaleAsync(new Vector3(
                     Scale.ElementAtOrDefault(0) ?? actor.Scale.x,
                     Scale.ElementAtOrDefault(1) ?? actor.Scale.y,
-                    Scale.ElementAtOrDefault(2) ?? actor.Scale.z), Duration, easingType);
+                    Scale.ElementAtOrDefault(2) ?? actor.Scale.z), Duration, easingType, cancellationToken);
         }
 
-        protected virtual async Task ApplyTintColorModificationAsync (TActor actor, EasingType easingType)
+        protected virtual async Task ApplyTintColorModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             if (TintColor is null) return;
             if (!ColorUtility.TryParseHtmlString(TintColor, out var color))
@@ -189,7 +171,7 @@ namespace Naninovel.Commands
                 Debug.LogError($"Failed to parse `{TintColor}` color to apply tint modification for `{actor.Id}` actor. See the API docs for supported color formats.");
                 return;
             }
-            await actor.ChangeTintColorAsync(color, Duration, easingType);
+            await actor.ChangeTintColorAsync(color, Duration, easingType, cancellationToken);
         }
     } 
 }

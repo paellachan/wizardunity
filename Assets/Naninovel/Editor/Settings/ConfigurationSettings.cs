@@ -36,7 +36,7 @@ namespace Naninovel
 
         private const string editorDataPathKey = "Naninovel." + nameof(ConfigurationSettings) + "." + nameof(GeneratedDataPath);
         private const string settingsPathPrefix = "Project/Naninovel/";
-        private static readonly GUIContent helpIcon = EditorGUIUtility.IconContent("_Help", "|Open naninovel guide in web browser.");
+        private static readonly GUIContent helpIcon = new GUIContent(Resources.Load<Texture2D>("Naninovel/HelpIcon"), "Open naninovel guide in web browser.");
         private static readonly Type settingsScopeType = typeof(EditorWindow).Assembly.GetType("UnityEditor.SettingsWindow+GUIScope");
         private static readonly Dictionary<Type, Type> settingsTypeMap = BuildSettingsTypeMap();
 

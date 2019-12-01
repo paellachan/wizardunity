@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -36,11 +37,9 @@ namespace Naninovel.Commands
             Player?.ReleaseResources(this, MovieName);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
-            await Player?.PlayAsync(MovieName);
+            await Player?.PlayAsync(MovieName, cancellationToken);
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
     }
 }

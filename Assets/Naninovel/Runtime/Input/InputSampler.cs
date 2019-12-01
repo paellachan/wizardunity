@@ -28,7 +28,11 @@ namespace Naninovel
         /// <summary>
         /// Whether input is being activated.
         /// </summary>
-        public bool IsActive { get; private set; }
+        public bool IsActive => Value != 0;
+        /// <summary>
+        /// Current value (activation force) of the input; zero means the input is not active.
+        /// </summary>
+        public float Value { get; private set; }
         /// <summary>
         /// Whether input started activation during current frame.
         /// </summary>
@@ -110,21 +114,25 @@ namespace Naninovel
 
         public void SampleInput ()
         {
-            if (Binding.Keys != null)
+            if (Binding.Keys?.Count > 0)
                 foreach (var key in Binding.Keys)
                 {
-                    if (Input.GetKeyDown(key)) SetInputActive(true);
-                    if (Input.GetKeyUp(key)) SetInputActive(false);
+                    if (Input.GetKeyDown(key)) SetInputValue(1);
+                    if (Input.GetKeyUp(key)) SetInputValue(0);
                 }
 
-            if (Binding.Axes != null)
+            if (Binding.Axes?.Count > 0)
+            {
+                var maxValue = 0f;
                 foreach (var axis in Binding.Axes)
                 {
-                    var axisSample = axis.Sample();
-                    if (!axisSample.HasValue) continue;
-                    if (axisSample.Value) SetInputActive(true);
-                    else SetInputActive(false);
+                    var axisValue = axis.Sample();
+                    if (Mathf.Abs(axisValue) > Mathf.Abs(maxValue))
+                        maxValue = axisValue;
                 }
+                if (maxValue != Value)
+                    SetInputValue(maxValue);
+            }
 
             if (objectTriggers.Count > 0)
             {
@@ -137,24 +145,24 @@ namespace Naninovel
                 {
                     var hoveredObject = EventSystem.current.GetHoveredGameObject();
                     if (hoveredObject && objectTriggers.Contains(hoveredObject))
-                        SetInputActive(true);
+                        SetInputValue(1f);
                 }
 
                 var touchEnded = Input.touchCount > 0
                     && Input.GetTouch(0).phase == TouchPhase.Ended;
                 var clickedUp = Input.GetMouseButtonUp(0);
-                if (touchEnded || clickedUp) SetInputActive(false);
+                if (touchEnded || clickedUp) SetInputValue(0f);
             }
         }
 
-        private void SetInputActive (bool isActive)
+        private void SetInputValue (float value)
         {
-            IsActive = isActive;
+            Value = value;
             lastActiveFrame = Time.frameCount;
 
-            onInputTCS?.TrySetResult(isActive);
+            onInputTCS?.TrySetResult(IsActive);
             onInputTCS = null;
-            if (isActive)
+            if (IsActive)
             {
                 onInputStartTCS?.TrySetResult(null);
                 onInputStartTCS = null;
@@ -171,7 +179,7 @@ namespace Naninovel
                 onInputEndCTS = null;
             }
            
-            if (isActive) OnStart?.Invoke();
+            if (IsActive) OnStart?.Invoke();
             else OnEnd?.Invoke();
         }
     }

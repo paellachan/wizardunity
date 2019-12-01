@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace UnityCommon
 {
     public class ScriptableUIBehaviour : UIBehaviour
     {
+        [System.Serializable]
+        private class VisibilityChangedEvent : UnityEvent<bool> { }
+
         public event Action<bool> OnVisibilityChanged;
 
         public float FadeTime { get => fadeTime; set => fadeTime = value; }
@@ -28,6 +32,10 @@ namespace UnityCommon
         [SerializeField] private bool isVisibleOnAwake = true;
         [Tooltip("Fade duration (in seconds) when changing visiblity.")]
         [SerializeField] private float fadeTime = .3f;
+        [Tooltip("When assigned, will make the object focused (for keyboard or gamepad control) when the UI becomes visible.")]
+        [SerializeField] private GameObject focusObject = default;
+        [Tooltip("Invoked when visibility of the UI is changed.")]
+        [SerializeField] private VisibilityChangedEvent onVisibilityChanged = default;
 
         private Tweener<FloatTween> fadeTweener;
         private RectTransform rectTransform;
@@ -41,7 +49,7 @@ namespace UnityCommon
 
             this.isVisible = isVisible;
 
-            OnVisibilityChanged.SafeInvoke(isVisible);
+            HandleVisibilityChanged(isVisible);
 
             if (!CanvasGroup) return;
 
@@ -71,7 +79,7 @@ namespace UnityCommon
 
             this.isVisible = isVisible;
 
-            OnVisibilityChanged.SafeInvoke(isVisible);
+            HandleVisibilityChanged(isVisible);
 
             if (!CanvasGroup) return;
 
@@ -149,6 +157,19 @@ namespace UnityCommon
             }
 
             SetIsVisible(IsVisibleOnAwake);
+        }
+
+        /// <summary>
+        /// Invoked when visibility of the UI is changed.
+        /// </summary>
+        /// <param name="visible">The new visibility of the UI.</param>
+        protected virtual void HandleVisibilityChanged (bool visible)
+        {
+            OnVisibilityChanged?.Invoke(visible);
+            onVisibilityChanged?.Invoke(visible);
+
+            if (focusObject && visible && EventSystem.current)
+                EventSystem.current.SetSelectedGameObject(focusObject);
         }
 
         private RectTransform GetRectTransform ()

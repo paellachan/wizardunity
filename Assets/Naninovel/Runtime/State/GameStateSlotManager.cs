@@ -14,15 +14,15 @@ namespace Naninovel
 
         private string saveSlotMask, quickSaveSlotMask, savePattern, quickSavePattern;
 
-        public GameStateSlotManager (string saveFolderName, string saveSlotMask, string quickSaveSlotMask, int saveSlotLimit, int quickSaveSlotLimit) 
-            : base(saveFolderName)
+        public GameStateSlotManager (string saveFolderName, string saveSlotMask, string quickSaveSlotMask, int saveSlotLimit, int quickSaveSlotLimit, bool binary) 
+            : base(saveFolderName, binary)
         {
             this.saveSlotMask = saveSlotMask;
             this.quickSaveSlotMask = quickSaveSlotMask;
             SaveSlotLimit = saveSlotLimit;
             QuickSaveSlotLimit = quickSaveSlotLimit;
-            savePattern = string.Format(saveSlotMask, "*") + ".json"; 
-            quickSavePattern = string.Format(quickSaveSlotMask, "*") + ".json";
+            savePattern = string.Format(saveSlotMask, "*") + $".{Extension}"; 
+            quickSavePattern = string.Format(quickSaveSlotMask, "*") + $".{Extension}";
         }
 
         public override bool AnySaveExists ()

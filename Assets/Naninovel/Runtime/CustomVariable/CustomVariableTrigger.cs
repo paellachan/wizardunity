@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System;
+using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
 using UnityEngine.Events;
@@ -58,15 +59,14 @@ namespace Naninovel
         private void OnEnable ()
         {
             variableManager.OnVariableUpdated += HandleVariableUpdated;
-            stateManager.OnGameLoadFinished += HandleGameLoadFinished;
+            stateManager.AddOnGameDeserializeTask(HandleGameDeserialized);
         }
 
         private void OnDisable ()
         {
             if (variableManager != null)
                 variableManager.OnVariableUpdated -= HandleVariableUpdated;
-            if (stateManager != null)
-                stateManager.OnGameLoadFinished -= HandleGameLoadFinished;
+            stateManager?.RemoveOnGameDeserializeTask(HandleGameDeserialized);
         }
 
         private void Start ()
@@ -95,7 +95,7 @@ namespace Naninovel
                 onBoolVariableValueChanged?.Invoke(boolValue);
         }
 
-        private void HandleGameLoadFinished (GameSaveLoadArgs args)
+        private Task HandleGameDeserialized (GameStateMap state)
         {
             OnVariableValueChanged?.Invoke(CustomVariableValue);
             onVariableValueChanged?.Invoke(CustomVariableValue);
@@ -105,6 +105,7 @@ namespace Naninovel
                 onIntVariableValueChanged?.Invoke(intValue);
             if (!string.IsNullOrEmpty(CustomVariableValue) && bool.TryParse(CustomVariableValue, out var boolValue))
                 onBoolVariableValueChanged?.Invoke(boolValue);
+            return Task.CompletedTask;
         }
     }
 }

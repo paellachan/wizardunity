@@ -41,20 +41,17 @@ namespace Naninovel
         /// </summary>
         public bool UIVisible { get => cameraManager.RenderUI; set => SetUIVisible(value); }
 
-        private const string defaultUIResourcesPath = "Naninovel/DefaultUI";
-
         private readonly UIConfiguration config;
-        private CameraManager cameraManager;
-        private InputManager inputManager;
+        private readonly List<ManagedUI> managedUIs = new List<ManagedUI>();
+        private readonly CameraManager cameraManager;
+        private readonly InputManager inputManager;
         private Camera customCamera;
-        private List<ManagedUI> managedUIs;
 
         public UIManager (UIConfiguration config, CameraManager cameraManager, InputManager inputManager)
         {
             this.config = config;
             this.cameraManager = cameraManager;
             this.inputManager = inputManager;
-            managedUIs = new List<ManagedUI>();
         }
 
         public async Task InitializeServiceAsync ()
@@ -70,14 +67,16 @@ namespace Naninovel
             existingUIs = managedUIs.Select(ui => ui.UIComponent);
             await Task.WhenAll(existingUIs.Select(ui => ui.InitializeAsync()));
 
-            inputManager.ToggleUI.OnStart += ToggleUI;
+            if (inputManager?.ToggleUI != null)
+                inputManager.ToggleUI.OnStart += ToggleUI;
         }
 
         public void ResetService () { }
 
         public void DestroyService ()
         {
-            inputManager.ToggleUI.OnStart -= ToggleUI;
+            if (inputManager?.ToggleUI != null)
+                inputManager.ToggleUI.OnStart -= ToggleUI;
 
             foreach (var managedUI in managedUIs)
             {
@@ -91,7 +90,7 @@ namespace Naninovel
         /// <summary>
         /// Instatiates the provided prefab, adds a <see cref="IManagedUI"/> component
         /// attached to the root object to the managed objects and applies configuration properties.
-        /// Don't forget to manually invoke <see cref="IManagedUI.InitializeAsync"/> on the returned object if required.
+        /// Don't forget to manually invoke <see cref="IManagedUI.InitializeAsync"/> on the returned object if invoked after the UI service initialization.
         /// </summary>
         /// <param name="prefab">The prefab to spawn. Should have a <see cref="IManagedUI"/> component attached to the root object.</param>
         public IManagedUI InstantiateUIPrefab (GameObject prefab)
@@ -162,18 +161,40 @@ namespace Naninovel
         /// <summary>
         /// Loads default UI prefabs with <see cref="IManagedUI"/> implementations that doesn't exist in the provided <paramref name="existingUIs"/>.
         /// </summary>
-        private static IEnumerable<GameObject> LoadUniqueDefaultUIs (IEnumerable<IManagedUI> existingUIs)
+        private IEnumerable<GameObject> LoadUniqueDefaultUIs (IEnumerable<IManagedUI> existingUIs)
         {
-            IEnumerable<Type> GetImplementation (Type type) => type?.GetInterfaces()?.Where(i => typeof(IManagedUI).IsAssignableFrom(i));
+            IEnumerable<Type> GetImplementations (Type type) => type?.GetInterfaces()?.Where(i => typeof(IManagedUI).IsAssignableFrom(i));
 
             bool FilterByImplementation (GameObject obj)
             {
-                var objImpl = GetImplementation(obj?.GetComponent<IManagedUI>()?.GetType());
-                if (objImpl is null) return true;
-                return !existingUIs.Any(e => GetImplementation(e.GetType()).SequenceEqual(objImpl));
+                if (!obj.TryGetComponent<IManagedUI>(out var managedUI)) return false;
+                var objImpl = GetImplementations(managedUI.GetType());
+                if (objImpl is null) return false;
+                return !existingUIs.Any(e => GetImplementations(e.GetType()).SequenceEqual(objImpl));
             }
 
-            var defaultPrefabs = Resources.LoadAll<GameObject>(defaultUIResourcesPath);
+            var defaultPrefabs = new List<GameObject>();
+            foreach (var data in config.DefaultUI)
+            {
+                if (!data.Enabled) continue;
+
+                if (ObjectUtils.IsValid(data.CustomPrefab))
+                {
+                    var interfaceType = Type.GetType(data.TypeName);
+                    if (data.CustomPrefab.TryGetComponent(interfaceType, out var managedUI))
+                    {
+                        defaultPrefabs.Add(data.CustomPrefab);
+                        continue;
+                    }
+                    Debug.LogWarning($"Failed to use `{data.CustomPrefab.name}` custom prefab to override `{data.Name}` default UI. " +
+                        $"Make sure the custom prefab has a component that implements `{interfaceType.Name}` interface attached to the root object.");
+                }
+
+                var defaultPrefabPath = DefaultUIData.ResourcePathPrefix + data.ResourcePath;
+                var defaultPrefab = Resources.Load<GameObject>(defaultPrefabPath);
+                defaultPrefabs.Add(defaultPrefab);
+            }
+
             return defaultPrefabs.Where(FilterByImplementation);
         }
     }

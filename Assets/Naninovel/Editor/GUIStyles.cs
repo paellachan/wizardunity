@@ -12,6 +12,7 @@ namespace Naninovel
         public static readonly GUIStyle TagIcon;
         public static readonly GUIStyle ScriptLabelTag;
         public static readonly GUIStyle ScriptGotoTag;
+        public static readonly GUIStyle RichLabelStyle;
 
         static GUIStyles ()
         {
@@ -26,6 +27,9 @@ namespace Naninovel
             var scriptGotoTexture = Resources.Load<Texture2D>("Naninovel/ScriptGotoIcon");
             ScriptGotoTag = new GUIStyle(ScriptLabelTag);
             ScriptGotoTag.normal.background = scriptGotoTexture;
+
+            RichLabelStyle = new GUIStyle(GUI.skin.label);
+            RichLabelStyle.richText = true;
         }
 
         private static GUIStyle GetStyle (string styleName)

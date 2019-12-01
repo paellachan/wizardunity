@@ -28,11 +28,16 @@ namespace Naninovel
         {
             DefineKey = ParseDefineKey(Text);
             DefineValue = ParseDefineValue(Text, DefineKey);
+            
+            if (string.IsNullOrEmpty(DefineKey) || string.IsNullOrEmpty(DefineValue))
+            {
+                if (!IgnoreParseErrors)
+                    Debug.LogError(ParseErrorMessage);
+                Valid = false;
+            }
 
             if (scriptDefines != null)
             {
-                if (!IgnoreParseErrors)
-                    Debug.Assert(!string.IsNullOrEmpty(DefineKey) && !string.IsNullOrEmpty(DefineValue), ParseErrorMessage);
                 //if (scriptDefines.ContainsKey(DefineKey)) Debug.LogWarning($"Multiple assigns to `{DefineKey}` define key detected in '{ScriptName}' script at line #{LineNumber}. Define value will be overwritten.");
                 scriptDefines[DefineKey] = DefineValue;
             }
@@ -43,6 +48,10 @@ namespace Naninovel
 
         private static string ParseDefineKey (string lineText) => lineText?.GetBetween(IdentifierLiteral, " ");
 
-        private static string ParseDefineValue (string lineText, string defineKey) => lineText?.GetAfterFirst(defineKey)?.TrimFull();
+        private static string ParseDefineValue (string lineText, string defineKey)
+        {
+            if (string.IsNullOrEmpty(defineKey)) return null;
+            return lineText?.GetAfterFirst(defineKey)?.TrimFull();
+        }
     }
 }

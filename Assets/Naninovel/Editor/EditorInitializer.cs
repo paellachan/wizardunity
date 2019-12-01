@@ -24,7 +24,7 @@ namespace Naninovel
             var scriptsManager = new ScriptManager(Configuration.LoadOrDefault<ScriptsConfiguration>(), providersManager, localizationManager);
             services.Add(scriptsManager);
 
-            var varsManager = new CustomVariableManager();
+            var varsManager = new CustomVariableManager(Configuration.LoadOrDefault<CustomVariablesConfiguration>());
             services.Add(varsManager);
 
             await Engine.InitializeAsync(engineConfig, behaviour, services);

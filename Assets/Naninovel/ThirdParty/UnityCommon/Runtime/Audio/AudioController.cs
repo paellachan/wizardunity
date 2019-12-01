@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -8,11 +9,11 @@ namespace UnityCommon
 {
     public class AudioController : MonoBehaviour
     {
-        public AudioListener Listener { get { return audioListener ?? FindOrAddListener(); } }
-        public float Volume { get { return AudioListener.volume; } set { AudioListener.volume = value; } }
-        public bool IsMuted { get { return AudioListener.pause; } set { AudioListener.pause = value; } }
+        public AudioListener Listener => listenerCache ? listenerCache : FindOrAddListener();
+        public float Volume { get => AudioListener.volume; set => AudioListener.volume = value; }
+        public bool IsMuted { get => AudioListener.pause; set => AudioListener.pause = value; } 
 
-        private AudioListener audioListener;
+        private AudioListener listenerCache;
         private Tweener<FloatTween> listenerVolumeTweener;
         private Dictionary<AudioClip, AudioTrack> audioTracks = new Dictionary<AudioClip, AudioTrack>();
         private Stack<AudioSource> sourcesPool = new Stack<AudioSource>();
@@ -65,7 +66,7 @@ namespace UnityCommon
         }
 
         public async Task PlayClipAsync (AudioClip clip, float fadeInTime, AudioSource audioSource = null, float volume = 1f,
-            bool loop = false, AudioMixerGroup mixerGroup = null, AudioClip introClip = null)
+            bool loop = false, AudioMixerGroup mixerGroup = null, AudioClip introClip = null, CancellationToken cancellationToken = default)
         {
             if (!clip) return;
 
@@ -78,7 +79,7 @@ namespace UnityCommon
 
             var track = new AudioTrack(clip, audioSource, this, volume, loop, mixerGroup, introClip);
             audioTracks.Add(clip, track);
-            await track.PlayAsync(fadeInTime);
+            await track.PlayAsync(fadeInTime, cancellationToken);
         }
 
         public void StopClip (AudioClip clip)
@@ -93,15 +94,15 @@ namespace UnityCommon
                 track.Stop();
         }
 
-        public async Task StopClipAsync (AudioClip clip, float fadeOutTime)
+        public async Task StopClipAsync (AudioClip clip, float fadeOutTime, CancellationToken cancellationToken = default)
         {
             if (!clip || !IsClipPlaying(clip)) return;
-            await GetTrack(clip).StopAsync(fadeOutTime);
+            await GetTrack(clip).StopAsync(fadeOutTime, cancellationToken);
         }
 
-        public async Task StopAllClipsAsync (float fadeOutTime)
+        public async Task StopAllClipsAsync (float fadeOutTime, CancellationToken cancellationToken = default)
         {
-            await Task.WhenAll(audioTracks.Values.Select(t => t.StopAsync(fadeOutTime)));
+            await Task.WhenAll(audioTracks.Values.Select(t => t.StopAsync(fadeOutTime, cancellationToken)));
         }
 
         public AudioTrack GetTrack (AudioClip clip)
@@ -117,9 +118,9 @@ namespace UnityCommon
 
         private AudioListener FindOrAddListener ()
         {
-            audioListener = FindObjectOfType<AudioListener>();
-            if (!audioListener) audioListener = gameObject.AddComponent<AudioListener>();
-            return audioListener;
+            listenerCache = FindObjectOfType<AudioListener>();
+            if (!listenerCache) listenerCache = gameObject.AddComponent<AudioListener>();
+            return listenerCache;
         }
 
         private bool IsOwnedByController (AudioSource audioSource)

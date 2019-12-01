@@ -3,6 +3,7 @@
 using Naninovel.UI;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityCommon;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -27,6 +28,9 @@ namespace Naninovel
         public const string AutoPlayName = "AutoPlay";
         public const string ToggleUIName = "ToggleUI";
         public const string ShowBacklogName = "ShowBacklog";
+        public const string RollbackName = "Rollback";
+        public const string CameraLookXName = "CameraLookX";
+        public const string CameraLookYName = "CameraLookY";
 
         public InputSampler Submit => GetSampler(SubmitName);
         public InputSampler Cancel => GetSampler(CancelName);
@@ -35,6 +39,9 @@ namespace Naninovel
         public InputSampler AutoPlay => GetSampler(AutoPlayName);
         public InputSampler ToggleUI => GetSampler(ToggleUIName);
         public InputSampler ShowBacklog => GetSampler(ShowBacklogName);
+        public InputSampler Rollback => GetSampler(RollbackName);
+        public InputSampler CameraLookX => GetSampler(CameraLookXName);
+        public InputSampler CameraLookY => GetSampler(CameraLookYName);
 
         public bool ProcessInput { get; set; } = true;
 
@@ -62,8 +69,22 @@ namespace Naninovel
                 samplersMap[binding.Name] = sampler;
             }
 
+            gameObject = Engine.CreateObject("InputManager");
+
             if (config.SpawnEventSystem)
-                gameObject = Engine.CreateObject("InputManager", -1, typeof(EventSystem), typeof(StandaloneInputModule));
+            {
+                if (ObjectUtils.IsValid(config.CustomEventSystem))
+                    Engine.Instantiate(config.CustomEventSystem).transform.SetParent(gameObject.transform, false);
+                else gameObject.AddComponent<EventSystem>();
+            }
+
+
+            if (config.SpawnInputModule)
+            {
+                if (ObjectUtils.IsValid(config.CustomInputModule))
+                    Engine.Instantiate(config.CustomInputModule).transform.SetParent(gameObject.transform, false);
+                else gameObject.AddComponent<StandaloneInputModule>();
+            }
 
             engineBehaviour.OnBehaviourUpdate += SampleInput;
 
@@ -83,14 +104,14 @@ namespace Naninovel
             var state = new GameState() {
                 ProcessInput = ProcessInput
             };
-            stateMap.SerializeObject(state);
+            stateMap.SetState(state);
             return Task.CompletedTask;
         }
 
         public Task LoadServiceStateAsync (GameStateMap stateMap)
         {
-            var state = stateMap.DeserializeObject<GameState>() ?? new GameState();
-            ProcessInput = state.ProcessInput;
+            var state = stateMap.GetState<GameState>();
+            ProcessInput = state?.ProcessInput ?? true;
             return Task.CompletedTask;
         }
 

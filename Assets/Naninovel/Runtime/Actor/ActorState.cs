@@ -10,46 +10,60 @@ namespace Naninovel
     [System.Serializable]
     public abstract class ActorState
     {
-        public string Id;
-        public string Appearance;
-        public bool IsVisible;
-        public Vector3 Position;
-        public Quaternion Rotation;
-        public Vector3 Scale;
-        public Color TintColor;
+        public string Id => id;
 
-        public void OverwriteFromJson (string json) => JsonUtility.FromJsonOverwrite(json, this);
+        [SerializeField] private string id = default;
+        [SerializeField] private string appearance = default;
+        [SerializeField] private bool isVisible = false;
+        [SerializeField] private Vector3 position = Vector3.zero;
+        [SerializeField] private Quaternion rotation = Quaternion.identity;
+        [SerializeField] private Vector3 scale = Vector3.one;
+        [SerializeField] private Color tintColor = Color.white;
+
         public string ToJson () => JsonUtility.ToJson(this);
 
-        public abstract void ApplyToActor (IActor actor);
-        public abstract void OverwriteFromActor (IActor actor);
+        public void OverwriteFromJson (string json)
+        {
+            JsonUtility.FromJsonOverwrite(json, this);
+        }
+
+        public void OverwriteFromActor (IActor actor)
+        {
+            id = actor.Id;
+            appearance = actor.Appearance;
+            isVisible = actor.IsVisible;
+            position = actor.Position;
+            rotation = actor.Rotation;
+            scale = actor.Scale;
+            tintColor = actor.TintColor;
+        }
+
+        public void ApplyToActor (IActor actor)
+        {
+            actor.Appearance = appearance;
+            actor.IsVisible = isVisible;
+            actor.Position = position;
+            actor.Rotation = rotation;
+            actor.Scale = scale;
+            actor.TintColor = tintColor;
+        }
     }
 
+    /// <summary>
+    /// Represents serializable state of a <typeparamref name="TActor"/>.
+    /// </summary>
+    [System.Serializable]
     public abstract class ActorState<TActor> : ActorState
         where TActor : IActor
     {
-        public virtual void ApplyToActor (TActor actor)
-        {
-            actor.Appearance = Appearance;
-            actor.IsVisible = IsVisible;
-            actor.Position = Position;
-            actor.Rotation = Rotation;
-            actor.Scale = Scale;
-            actor.TintColor = TintColor;
-        }
-
         public virtual void OverwriteFromActor (TActor actor)
         {
-            Id = actor.Id;
-            Appearance = actor.Appearance;
-            IsVisible = actor.IsVisible;
-            Position = actor.Position;
-            Rotation = actor.Rotation;
-            Scale = actor.Scale;
-            TintColor = actor.TintColor;
+            base.OverwriteFromActor(actor);
         }
 
-        public override void ApplyToActor (IActor actor) => ApplyToActor(actor);
-        public override void OverwriteFromActor (IActor actor) => OverwriteFromActor(actor);
+        public virtual void ApplyToActor (TActor actor)
+        {
+            base.ApplyToActor(actor);
+        }
     }
 }

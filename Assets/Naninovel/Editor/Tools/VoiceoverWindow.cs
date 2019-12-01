@@ -39,7 +39,7 @@ namespace Naninovel
             if (!Engine.IsInitialized)
             {
                 isWorking = true;
-                Engine.OnInitialized += InializeEditor;
+                Engine.OnInitializationFinished += InializeEditor;
                 EditorInitializer.InitializeAsync().WrapAsync();
             }
             else InializeEditor();
@@ -52,11 +52,11 @@ namespace Naninovel
 
         private void InializeEditor ()
         {
-            Engine.OnInitialized -= InializeEditor;
+            Engine.OnInitializationFinished -= InializeEditor;
 
             scriptsManager = Engine.GetService<ScriptManager>();
             localizationManager = Engine.GetService<LocalizationManager>();
-            locale = localizationManager.DefaultLocale;
+            locale = localizationManager.SourceLocale;
             isWorking = false;
         }
 
@@ -128,9 +128,9 @@ namespace Naninovel
                     if (!(cmd is PrintText)) continue;
                     var printCmd = cmd as PrintText;
 
-                    scriptText += UseMarkdownFormat ? $"## {printCmd.AutoVoiceClipName}\n" : $"{printCmd.AutoVoiceClipName}\n";
-                    if (!string.IsNullOrEmpty(printCmd.ActorId))
-                        scriptText += $"{printCmd.ActorId}: ";
+                    scriptText += UseMarkdownFormat ? $"## {printCmd.AutoVoicePath}\n" : $"{printCmd.AutoVoicePath}\n";
+                    if (!string.IsNullOrEmpty(printCmd.AuthorId))
+                        scriptText += $"{printCmd.AuthorId}: ";
                     scriptText += UseMarkdownFormat ? $"`{printCmd.Text}`\n\n" : $"{printCmd.Text}\n\n";
                 }
 

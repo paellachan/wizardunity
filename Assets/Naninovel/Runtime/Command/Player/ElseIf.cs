@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace Naninovel.Commands
         [CommandParameter(alias: NamelessParameterAlias)]
         public string Expression { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
-        public override Task ExecuteAsync ()
+        public override Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             // We might get here either on exiting from an @if or other @elseif branch (which condition is met), or via direct @goto playback jump. 
             // In any case, we just need to get out of the current conditional block.
@@ -27,8 +28,6 @@ namespace Naninovel.Commands
 
             return Task.CompletedTask;
         }
-
-        public override Task UndoAsync () => Task.CompletedTask;
 
         public bool EvaluateExpression () => ExpressionEvaluator.Evaluate<bool>(Expression, LogEvalError);
 

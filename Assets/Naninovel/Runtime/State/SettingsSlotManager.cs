@@ -8,7 +8,8 @@ namespace Naninovel
     {
         private string defaultSlotId;
 
-        public SettingsSlotManager (string saveFolderName, string defaultSlotId) : base(saveFolderName)
+        public SettingsSlotManager (string saveFolderName, string defaultSlotId, bool binary) 
+            : base(saveFolderName, binary)
         {
             this.defaultSlotId = defaultSlotId;
         }
@@ -16,7 +17,7 @@ namespace Naninovel
         public override bool AnySaveExists ()
         {
             if (!Directory.Exists(SaveDataPath)) return false;
-            return Directory.GetFiles(SaveDataPath, $"{defaultSlotId}.json", SearchOption.TopDirectoryOnly).Length > 0;
+            return Directory.GetFiles(SaveDataPath, $"{defaultSlotId}.{Extension}", SearchOption.TopDirectoryOnly).Length > 0;
         }
     }
 }

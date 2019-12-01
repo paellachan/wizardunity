@@ -1,20 +1,24 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
 
 namespace Naninovel.Commands
 {
-    public abstract class ModifyOrthoActor<TActor, TState, TManager> : ModifyActor<TActor, TState, TManager>
+    public abstract class ModifyOrthoActor<TActor, TState, TMeta, TConfig, TManager> : ModifyActor<TActor, TState, TMeta, TConfig, TManager>
         where TActor : IActor
         where TState : ActorState<TActor>, new()
-        where TManager : OrthoActorManager<TActor, TState>
+        where TMeta : OrthoActorMetadata
+        where TConfig : OrthoActorManagerConfiguration<TMeta>
+        where TManager : OrthoActorManager<TActor, TState, TMeta, TConfig>
     {
         /// <summary>
         /// Position (relative to the screen borders, in percents) to set for the modified actor.
         /// Position is described as follows: `0,0` is the bottom left, `50,50` is the center and `100,100` is the top right corner of the screen.
+        /// Use Z-component (third member, eg `,,10`) to move (sort) by depth while in ortho mode.
         /// </summary>
         [CommandParameter("pos", true)]
         public virtual float?[] ScenePosition { get => GetDynamicParameter<float?[]>(null); set => SetDynamicParameter(value); }
@@ -27,12 +31,13 @@ namespace Naninovel.Commands
         private float?[] uniformScale = new float?[3];
         private float?[] worldPosition = new float?[3];
 
-        protected override Task ApplyPositionModificationAsync (TActor actor, EasingType easingType)
+        protected override Task ApplyPositionModificationAsync (TActor actor, EasingType easingType, CancellationToken cancellationToken)
         {
             // In ortho mode, there is no point in animating z position.
-            if (Position != null) actor.ChangePositionZ(Position.ElementAtOrDefault(2) ?? actor.Position.z);
+            if (Position != null && Engine.GetService<CameraManager>().Camera.orthographic)
+                actor.ChangePositionZ(Position.ElementAtOrDefault(2) ?? actor.Position.z);
 
-            return base.ApplyPositionModificationAsync(actor, easingType);
+            return base.ApplyPositionModificationAsync(actor, easingType, cancellationToken);
         }
 
         private float?[] AttemptScenePosition ()

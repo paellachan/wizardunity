@@ -1,59 +1,40 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Naninovel.Commands
 {
     /// <summary>
-    /// Hides (removes from scene) an actor with provided ID.
+    /// Hides (makes invisible) an actor (character, background, text printer, choice handler, etc) with the provided ID.
+    /// In case mutliple actors with the same ID found (eg, a character and a printer), will affect all of them.
     /// </summary>
     /// <example>
-    /// ; Given an actor (eg, character, background, text printer, etc) with ID `SomeActor`
-    /// ; is currently visible on scene, the following command will hide it.
-    /// @hide SomeActor
+    /// ; Given an actor with ID `SomeActor` is visible, hide (fade-out) it over 3 seconds.
+    /// @hide SomeActor time:3
     /// </example>
     [CommandAlias("hide")]
     public class HideActor : Command
     {
-        private struct UndoData { public bool Executed, WasVisible; public IActorManager Manager; public string ActorId; }
-
         /// <summary>
         /// ID of the actor to hide.
         /// </summary>
         [CommandParameter(alias: NamelessParameterAlias)]
         public string ActorId { get => GetDynamicParameter<string>(null); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
-            var manager = Engine.GetService<IActorManager>(c => c.ActorExists(ActorId));
+            var managers = Engine.GetAllServices<IActorManager>(c => c.ActorExists(ActorId));
 
-            if (manager is null)
+            if (managers is null || managers.Count == 0)
             {
-                Debug.LogError($"Can't find manager with `{ActorId}` actor.");
+                Debug.LogError($"Can't find a manager with `{ActorId}` actor.");
                 return;
             }
 
-            var actor = manager.GetActor(ActorId);
-
-            undoData.Executed = true;
-            undoData.Manager = manager;
-            undoData.ActorId = actor.Id;
-            undoData.WasVisible = actor.IsVisible;
-
-            await actor.ChangeVisibilityAsync(false, Duration);
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            undoData.Manager.GetActor(undoData.ActorId).IsVisible = undoData.WasVisible;
-
-            undoData = default;
-            return Task.CompletedTask;
+            await Task.WhenAll(managers.Select(m => m.GetActor(ActorId).ChangeVisibilityAsync(false, Duration, cancellationToken: cancellationToken)));
         }
     } 
 }

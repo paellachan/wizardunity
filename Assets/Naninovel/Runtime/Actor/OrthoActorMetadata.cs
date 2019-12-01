@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// Represents data required to construct and initialize a <see cref="IActor"/> 
+    /// Represents serializable data required to construct and initialize a <see cref="IActor"/> 
     /// managed in the orthographic scene space.
     /// </summary>
     [System.Serializable]

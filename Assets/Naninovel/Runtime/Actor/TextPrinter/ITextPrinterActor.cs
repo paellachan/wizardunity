@@ -8,48 +8,32 @@ namespace Naninovel
 {
     /// <summary>
     /// Implementation is able to represent a text printer actor on scene.
+    /// Text printers are able to gradually reveal text messages associated with <see cref="ICharacterActor"/>.
     /// </summary>
     public interface ITextPrinterActor : IActor
     {
         /// <summary>
-        /// Whether the printer should handle print tasks by default.
+        /// The text message which the printer has currently assigned.
         /// </summary>
-        bool IsPrinterActive { get; set; }
+        string Text { get; set; }
         /// <summary>
-        /// The text which the printer has currently printed.
-        /// </summary>
-        string PrintedText { get; set; }
-        /// <summary>
-        /// Returns text that was printed at the last <see cref="PrintTextAsync(string, string, CancellationToken[])"/> invocation.
-        /// </summary>
-        string LastPrintedText { get; }
-        /// <summary>
-        /// ID of the actor to which currently printed text belongs.
+        /// ID of a character actor to which the currently assigned text belongs.
         /// </summary>
         string AuthorId { get; set; }
         /// <summary>
-        /// Delay (in seconds) after each printed text character. Lower the value, faster the printing speed.
-        /// </summary>
-        float PrintDelay { get; set; }
-        /// <summary>
-        /// Currently active rich text tags.
+        /// Bodies of the rich text tags to apply for the assigned text.
         /// </summary>
         List<string> RichTextTags { get; set; }
+        /// <summary>
+        /// Which part of the assigned text message is currently revealed, in 0.0 to 1.0 range.
+        /// </summary>
+        float RevealProgress { get; set; }
 
         /// <summary>
-        /// Outputs the provided text over time, gradually revealing characters one by one.
+        /// Reveals the assigned text message over time.
         /// </summary>
-        /// <param name="text">The text to print.</param>
-        /// <param name="actorId">ID of the actor to whom the text belongs.</param>
-        /// <param name="cancellationTokens">Tokens for task concellation.</param>
-        Task PrintTextAsync (string text, string actorId, params CancellationToken[] cancellationTokens);
-        /// <summary>
-        /// Adds text to the current output.
-        /// </summary>
-        void AppendText (string text);
-        /// <summary>
-        /// Clears printed text.
-        /// </summary>
-        void ResetText ();
+        /// <param name="revealDelay">Delay (in seconds) to wait after revealing each text character.</param>
+        /// <param name="cancellationToken">Token for task cancellation.</param>
+        Task RevealTextAsync (float revealDelay, CancellationToken cancellationToken = default);
     } 
 }

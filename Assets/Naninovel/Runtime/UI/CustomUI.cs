@@ -18,9 +18,9 @@ namespace Naninovel.UI
             public bool IsVisible;
         }
 
-        [Tooltip("Whether to automatically hide the UI when loading the game.")]
-        [SerializeField] private bool hideOnGameLoad = true;
-        [Tooltip("Whether to preserve visibility of the UI when saving/loading the game.")]
+        [Tooltip("Whether to automatically hide the UI when loading game or resetting state.")]
+        [SerializeField] private bool hideOnLoad = true;
+        [Tooltip("Whether to preserve visibility of the UI when saving/loading game.")]
         [SerializeField] private bool saveVisibilityState = true;
         [Tooltip("Whether the engine should halt user input processing while the UI is visible.")]
         [SerializeField] private bool blockInputWhenVisible = false;
@@ -42,14 +42,14 @@ namespace Naninovel.UI
         {
             base.OnEnable();
 
-            if (hideOnGameLoad)
-                stateManager.OnLoadStarted += Hide;
-
-            if (saveVisibilityState)
+            if (hideOnLoad)
             {
-                stateManager.OnGameSaveStarted += HandleGameSaveStarted;
-                stateManager.OnGameLoadFinished += HandleGameLoadFinished;
+                stateManager.OnGameLoadStarted += HandleGameLoadStarted;
+                stateManager.OnResetStarted += Hide;
             }
+
+            stateManager.AddOnGameSerializeTask(SerializeState);
+            stateManager.AddOnGameDeserializeTask(DeserializeState);
 
             if (blockInputWhenVisible)
                 inputManager.AddBlockingUI(this);
@@ -59,32 +59,45 @@ namespace Naninovel.UI
         {
             base.OnDisable();
 
-            if (hideOnGameLoad && stateManager != null)
-                stateManager.OnLoadStarted -= Hide;
-
-            if (saveVisibilityState && stateManager != null)
+            if (hideOnLoad && stateManager != null)
             {
-                stateManager.OnGameSaveStarted -= HandleGameSaveStarted;
-                stateManager.OnGameLoadFinished -= HandleGameLoadFinished;
+                stateManager.OnGameLoadStarted -= HandleGameLoadStarted;
+                stateManager.OnResetStarted -= Hide;
+            }
+
+            if (stateManager != null)
+            {
+                stateManager.RemoveOnGameSerializeTask(SerializeState);
+                stateManager.RemoveOnGameDeserializeTask(DeserializeState);
             }
 
             if (blockInputWhenVisible)
                 inputManager.RemoveBlockingUI(this);
         }
 
-        protected virtual void HandleGameSaveStarted (GameSaveLoadArgs args)
+        protected virtual Task SerializeState (GameStateMap stateMap)
         {
-            var state = new GameState() {
-                IsVisible = IsVisible
-            };
-            args.StateMap.SerializeObject(state);
+            if (saveVisibilityState)
+            {
+                var state = new GameState() {
+                    IsVisible = IsVisible
+                };
+                stateMap.SetState(state, name);
+            }
+            return Task.CompletedTask;
         }
 
-        protected virtual void HandleGameLoadFinished (GameSaveLoadArgs args)
+        protected virtual Task DeserializeState (GameStateMap stateMap)
         {
-            var state = args.StateMap.DeserializeObject<GameState>();
-            if (state is null) return;
-            IsVisible = state.IsVisible;
+            if (saveVisibilityState)
+            {
+                var state = stateMap.GetState<GameState>(name);
+                if (state is null) return Task.CompletedTask;
+                IsVisible = state.IsVisible;
+            }
+            return Task.CompletedTask;
         }
+
+        private void HandleGameLoadStarted (GameSaveLoadArgs args) => Hide();
     }
 }

@@ -1,7 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
-using UnityCommon;
 using UnityEngine;
 
 namespace Naninovel.Commands
@@ -21,10 +21,8 @@ namespace Naninovel.Commands
     /// </example>
     public class Spawn : Command, Command.IPreloadable
     {
-        private struct UndoData { public bool Spawned; }
-
         public interface IParameterized { void SetSpawnParameters (string[] parameters); }
-        public interface IAwaitable { Task AwaitSpawnAsync (); }
+        public interface IAwaitable { Task AwaitSpawnAsync (CancellationToken cancellationToken = default); }
 
         /// <summary>
         /// Path to the prefab resource to spawn. Path is relative to a `./Resources` folder, eg 
@@ -42,8 +40,6 @@ namespace Naninovel.Commands
         protected virtual string FullPath => Path;
         protected virtual SpawnManager SpawnManager => Engine.GetService<SpawnManager>();
 
-        private UndoData undoData;
-
         public async Task HoldResourcesAsync ()
         {
             if (string.IsNullOrWhiteSpace(FullPath)) return;
@@ -56,23 +52,9 @@ namespace Naninovel.Commands
             SpawnManager.ReleaseResources(this, FullPath);
         }
 
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
-            var obj = await SpawnManager.SpawnAsync(FullPath, Params);
-            if (ObjectUtils.IsValid(obj)) undoData.Spawned = true;
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Spawned) return Task.CompletedTask;
-
-            // TODO: Could potentially destroy wrong object when 
-            // multiple objects with equal path are spawned or
-            // miss an object that is auto-destroyed (without despawn command).
-            SpawnManager.DestroySpawnedObject(FullPath);
-
-            undoData = default;
-            return Task.CompletedTask;
+            await SpawnManager.SpawnAsync(FullPath, cancellationToken, Params);
         }
     }
 }

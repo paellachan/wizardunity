@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -35,7 +36,7 @@ namespace Naninovel.Commands
         /// Aliases can be used instead of the command IDs (type names) to reference commands in naninovel script.
         /// </summary>
         [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-        protected sealed class CommandAliasAttribute : Attribute
+        public sealed class CommandAliasAttribute : Attribute
         {
             public string Alias { get; }
 
@@ -49,7 +50,7 @@ namespace Naninovel.Commands
         /// Registers the field as <see cref="Command"/> parameter.
         /// </summary>
         [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-        protected sealed class CommandParameterAttribute : Attribute
+        public sealed class CommandParameterAttribute : Attribute
         {
             /// <summary>
             /// Used to reference the parameter in naninovel command script.
@@ -74,6 +75,11 @@ namespace Naninovel.Commands
         /// Use this alias to specify a nameless command parameter.
         /// </summary>
         public const string NamelessParameterAlias = "";
+        /// <summary>
+        /// Contains all the available <see cref="Command"/> types in the application domain, 
+        /// indexed by alias (if available) or type name. Keys are case-insensitive.
+        /// </summary>
+        public static readonly LiteralMap<Type> CommandTypes = GetCommandTypes();
 
         /// <summary>
         /// Whether this command was created from a <see cref="CommandScriptLine"/>.
@@ -95,6 +101,10 @@ namespace Naninovel.Commands
         /// When <see cref="IsFromScriptLine"/>, returns <see cref="CommandScriptLine.InlineIndex"/>.
         /// </summary>
         public int InlineIndex { get; private set; }
+        /// <summary>
+        /// The playback spot data.
+        /// </summary>
+        public PlaybackSpot PlaybackSpot => new PlaybackSpot(ScriptName, LineIndex, InlineIndex);
         /// <summary>
         /// Whether this command should be executed, as per <see cref="ConditionalExpression"/>.
         /// </summary>
@@ -120,22 +130,10 @@ namespace Naninovel.Commands
         private static readonly Regex captureVarsRegex = new Regex(@"(?<!\\)\{(.*?)(?<!\\)\}");
 
         /// <summary>
-        /// Used to cache all the naninovel command types to speedup de-/serialization; typename->type.
-        /// When command tag is defined, it will be used instead of typename. Keys are case-insensitive.
-        /// </summary>
-        private static LiteralMap<Type> cachedCommandTypes;
-
-        /// <summary>
         /// Used to store funcs that evaluates dynamic naninovel command parameters values: [param name] -> [get value func].
         /// Required to handle the cases when a script expression in injected to parameter value in naninovel scripts.
         /// </summary>
         private Dictionary<string, Func<object>> dynamicParameters = new Dictionary<string, Func<object>>(StringComparer.Ordinal);
-
-        static Command ()
-        {
-            if (cachedCommandTypes is null)
-                CacheCommandTypes();
-        }
 
         /// <summary>
         /// Creates new instance from serialized command text in form of a <see cref="CommandScriptLine"/>.
@@ -145,29 +143,36 @@ namespace Naninovel.Commands
             var commandType = FindCommandType(scriptLine.CommandName);
             if (commandType is null)
             {
-                Debug.LogError($"Script `{scriptLine.ScriptName}` at line #{scriptLine.LineNumber}: command `{scriptLine.CommandName}` not found in project's naninovel command types.");
+                LogWithPosition(scriptLine.ScriptName, scriptLine.LineNumber, $"Command `{scriptLine.CommandName}` not found in project's naninovel command types.", LogType.Error);
                 return null;
             }
 
             var command = Activator.CreateInstance(commandType) as Command;
+            command.ScriptName = scriptLine.ScriptName;
+            command.LineIndex = scriptLine.LineIndex;
+            command.LineNumber = scriptLine.LineNumber;
+            command.InlineIndex = scriptLine.InlineIndex;
 
             var paramaterFieldInfos = commandType.GetProperties()
-                .Where(property => property.IsDefined(typeof(CommandParameterAttribute), false));
-            foreach (var paramFieldInfo in paramaterFieldInfos)
-            {
-                var paramAttribute = paramFieldInfo.GetCustomAttributes(typeof(CommandParameterAttribute), false)
-                    .FirstOrDefault() as CommandParameterAttribute;
-                Debug.Assert(paramAttribute != null);
+                .Where(property => property.IsDefined(typeof(CommandParameterAttribute), false)).ToList();
+            var parameterAttributes = paramaterFieldInfos
+                .Select(f => f.GetCustomAttributes(typeof(CommandParameterAttribute), false).First() as CommandParameterAttribute).ToList();
+            Debug.Assert(paramaterFieldInfos.Count == parameterAttributes.Count);
 
-                var paramName = paramAttribute.Alias != null && scriptLine.CommandParameters.ContainsKey(paramAttribute.Alias) ? paramAttribute.Alias : paramFieldInfo.Name;
-                if (!scriptLine.CommandParameters.ContainsKey(paramName))
+            for (int i = 0; i < paramaterFieldInfos.Count; i++)
+            {
+                var paramFieldInfo = paramaterFieldInfos[i];
+                var paramAttribute = parameterAttributes[i];
+
+                var paramId = paramAttribute.Alias != null && scriptLine.CommandParameters.ContainsKey(paramAttribute.Alias) ? paramAttribute.Alias : paramFieldInfo.Name;
+                if (!scriptLine.CommandParameters.ContainsKey(paramId))
                 {
-                    if (!paramAttribute.Optional)
-                        Debug.LogError($"Script `{scriptLine.ScriptName}` at line #{scriptLine.LineNumber}: command `{commandType.Name}` is missing `{paramName}` parameter.");
+                    if (!paramAttribute.Optional && !ignoreErrors)
+                        command.LogWarningWithPosition($"Command `{commandType.Name}` is missing `{paramId}` parameter.");
                     continue;
                 }
 
-                var paramValueString = scriptLine.CommandParameters[paramName];
+                var paramValueString = scriptLine.CommandParameters[paramId];
                 // Check for injected script expressions and use late binding when found.
                 var matches = captureVarsRegex.Matches(paramValueString);
                 // Un-escape the `{` and `}` literals.
@@ -181,9 +186,33 @@ namespace Naninovel.Commands
                 }
             }
 
-            command.OnDeserializedFromScriptLine(scriptLine);
+            if (!ignoreErrors) // Check for unsupported parameters.
+            {
+                foreach (var paramId in scriptLine.CommandParameters.Keys)
+                {
+                    if (parameterAttributes.Exists(a => a.Alias?.EqualsFastIgnoreCase(paramId) ?? false)) continue;
+                    if (paramaterFieldInfos.Exists(f => f.Name.EqualsFastIgnoreCase(paramId))) continue;
+                    command.LogWarningWithPosition($"Command `{commandType.Name}` has an unsupported `{paramId}` parameter.");
+                }
+            }
 
             return command;
+        }
+
+        /// <summary>
+        /// Attempts to find a <see cref="Command"/> type based on the provided command alias or type name.
+        /// </summary>
+        public static Type FindCommandType (string commandId)
+        {
+            if (string.IsNullOrEmpty(commandId))
+                return null;
+
+            // First, try to resolve by key.
+            CommandTypes.TryGetValue(commandId, out Type result);
+            // If not found, look by type name (in case type name was requested for a command with a defined alias).
+            if (result is null)
+                result = CommandTypes.Values.FirstOrDefault(commandType => commandType.Name.EqualsFastIgnoreCase(commandId));
+            return result;
         }
 
         /// <summary>
@@ -205,26 +234,33 @@ namespace Naninovel.Commands
         }
 
         /// <summary>
+        /// Logs a message to the console; will include script name and line number of the command.
+        /// </summary>
+        public static void LogWithPosition (string scriptName, int lineNumber, string message, LogType logType = LogType.Log)
+        {
+            Debug.LogFormat(logType, default, default, $"Script `{scriptName}` at line #{lineNumber}: {message}");
+        }
+
+        /// <summary>
         /// Executes the command asynchronously.
         /// </summary>
-        public abstract Task ExecuteAsync ();
+        /// <param name="cancellationToken">When cancellation is requested, the async routine should return ASAP and refrain from modifying state of the engine services or objects.</param>
+        public abstract Task ExecuteAsync (CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reverts the effect of <see cref="ExecuteAsync"/> invocation. Tempus edax rerum.
+        /// Logs a message to the console; will include script name and line number of the command.
         /// </summary>
-        public abstract Task UndoAsync ();
+        public void LogWithPosition (string message, LogType logType = LogType.Log) => LogWithPosition(ScriptName, LineNumber, message, logType);
 
         /// <summary>
-        /// Invoked when the instance is created from a <see cref="CommandScriptLine"/> and 
-        /// all the <see cref="CommandParameterAttribute"/>-fields are populated.
+        /// Logs a warning to the console; will include script name and line number of the command.
         /// </summary>
-        protected virtual void OnDeserializedFromScriptLine (CommandScriptLine scriptLine)
-        {
-            ScriptName = scriptLine.ScriptName;
-            LineIndex = scriptLine.LineIndex;
-            LineNumber = scriptLine.LineNumber;
-            InlineIndex = scriptLine.InlineIndex;
-        }
+        public void LogWarningWithPosition (string message) => LogWithPosition(message, LogType.Warning);
+
+        /// <summary>
+        /// Logs an error to the console; will include script name and line number of the command.
+        /// </summary>
+        public void LogErrorWithPosition (string message) => LogWithPosition(message, LogType.Error);
 
         /// <summary>
         /// Attempts to evaluate value of the parameter with the provided name and type; returns provided default value when 
@@ -264,30 +300,18 @@ namespace Naninovel.Commands
             dynamicParameters[parameterName] = parameterValue;
         }
 
-        private static Type FindCommandType (string typeName)
+        private static LiteralMap<Type> GetCommandTypes ()
         {
-            if (string.IsNullOrWhiteSpace(typeName))
-                return null;
-
-            // First, try to resolve by key.
-            cachedCommandTypes.TryGetValue(typeName, out Type result);
-            // If not found, look by typename (in case typename was used for an command with defined tag).
-            if (result is null)
-                result = cachedCommandTypes.Values.FirstOrDefault(commandType => commandType.Name.EqualsFastIgnoreCase(typeName));
-            return result;
-        }
-
-        private static void CacheCommandTypes ()
-        {
-            cachedCommandTypes = new LiteralMap<Type>();
+            var result = new LiteralMap<Type>();
             var commandTypes = ReflectionUtils.ExportedDomainTypes
                 .Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(Command)));
             foreach (var commandType in commandTypes)
             {
                 var commandKey = commandType.GetCustomAttributes(typeof(CommandAliasAttribute), false)
                     .FirstOrDefault() is CommandAliasAttribute tagAttribute ? tagAttribute.Alias : commandType.Name;
-                cachedCommandTypes.Add(commandKey, commandType);
+                result.Add(commandKey, commandType);
             }
+            return result;
         }
 
         private static void BindDynamicParameter (Command command, string paramName, string paramValueString, Type paramType, MatchCollection regexMatches)

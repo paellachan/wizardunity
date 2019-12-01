@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -14,11 +15,7 @@ namespace Naninovel.Commands
     /// </summary>
     public class Return : Command
     {
-        private struct UndoData { public bool Executed; public PlaybackSpot PoppedSpot; }
-
-        private UndoData undoData;
-
-        public override async Task ExecuteAsync ()
+        public override async Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var player = Engine.GetService<ScriptPlayer>();
 
@@ -30,9 +27,6 @@ namespace Naninovel.Commands
 
             var spot = player.LastGosubReturnSpots.Pop();
 
-            undoData.Executed = true;
-            undoData.PoppedSpot = spot;
-
             if (player.PlayedScript != null && player.PlayedScript.Name.EqualsFastIgnoreCase(spot.ScriptName))
             {
                 player.Play(player.PlayedScript, spot.LineIndex);
@@ -41,19 +35,19 @@ namespace Naninovel.Commands
 
             var stateManager = Engine.GetService<StateManager>();
             if (stateManager.ResetStateOnLoad)
-                await stateManager?.ResetStateAsync(() => player.PreloadAndPlayAsync(spot.ScriptName, spot.LineIndex));
+            {
+                var varsManager = Engine.GetService<CustomVariableManager>();
+                var localVars = varsManager.GetAllLocalVariables();
+                await stateManager?.ResetStateAsync(
+                    () => { // Persist the local vars through the state reset.
+                        foreach (var kv in localVars)
+                            varsManager.SetVariableValue(kv.Key, kv.Value);
+                        return Task.CompletedTask;
+                    },
+                    () => player.PreloadAndPlayAsync(spot.ScriptName, spot.LineIndex)
+                );
+            }
             else await player.PreloadAndPlayAsync(spot.ScriptName, spot.LineIndex);
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            var player = Engine.GetService<ScriptPlayer>();
-            player.LastGosubReturnSpots.Push(undoData.PoppedSpot);
-
-            undoData = default;
-            return Task.CompletedTask;
         }
     } 
 }

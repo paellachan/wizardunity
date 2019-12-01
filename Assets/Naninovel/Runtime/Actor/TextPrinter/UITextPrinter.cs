@@ -10,43 +10,36 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="ITextPrinterActor"/> implementation using <see cref="UITextPrinterPanel"/> to represent an actor.
+    /// A <see cref="ITextPrinterActor"/> implementation using <see cref="UITextPrinterPanel"/> to represent the actor.
     /// </summary>
     public class UITextPrinter : MonoBehaviourActor, ITextPrinterActor
     {
-        public override string Appearance { get; set; }
+        public override string Appearance { get => PrinterPanel.Apperance; set => PrinterPanel.Apperance = value; }
         public override bool IsVisible { get => PrinterPanel.IsVisible; set => PrinterPanel.IsVisible = value; }
-        public bool IsPrinterActive { get => isPrinterActive; set => SetIsPrinterActive(value); }
-        public string PrintedText { get => PrinterPanel.PrintedText; set => SetPrintedText(value); }
-        public string LastPrintedText { get; private set; }
+        public string Text { get => text; set => SetText(value); }
         public string AuthorId { get => authorId; set => SetAuthorId(value); }
-        public float PrintDelay { get; set; }
         public List<string> RichTextTags { get => richTextTags; set => SetRichTextTags(value); }
+        public float RevealProgress { get => PrinterPanel.RevealProgress; set { CancelRevealTextRoutine(); PrinterPanel.RevealProgress = value; } }
 
         protected UITextPrinterPanel PrinterPanel { get; private set; }
-        protected bool IsUsingRichTags => RichTextTags?.Count > 0;
+        protected bool UsingRichTags => richTextTags.Count > 0;
 
-        private static WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
-        private string authorId;
-        private TextPrinterMetadata metadata;
-        private bool isPrinterActive = false;
-        private List<string> richTextTags = new List<string>();
+        private readonly List<string> richTextTags = new List<string>();
+        private readonly UIManager uiManager;
+        private readonly CharacterManager characterManager;
+        private readonly TextPrinterMetadata metadata;
+        private string text, authorId;
         private CancellationTokenSource revealTextCTS;
-        private InputManager inputManager;
-        private ScriptPlayer scriptPlayer;
-        private CharacterManager characterManager;
-        private string activeTagsOpenSequence;
-        private string activeTagsCloseSequence;
+        private string activeOpenTags, activeCloseTags;
 
         public UITextPrinter (string id, TextPrinterMetadata metadata)
             : base(id, metadata)
         {
             this.metadata = metadata;
-            inputManager = Engine.GetService<InputManager>();
-            scriptPlayer = Engine.GetService<ScriptPlayer>();
+            uiManager = Engine.GetService<UIManager>();
             characterManager = Engine.GetService<CharacterManager>();
-            activeTagsOpenSequence = string.Empty;
-            activeTagsCloseSequence = string.Empty;
+            activeOpenTags = string.Empty;
+            activeCloseTags = string.Empty;
         }
 
         public override async Task InitializeAsync ()
@@ -61,80 +54,57 @@ namespace Naninovel
                 return;
             }
 
-            var uiMngr = Engine.GetService<UIManager>();
-            PrinterPanel = uiMngr.InstantiateUIPrefab(prefabResource.Object) as UITextPrinterPanel;
+            PrinterPanel = uiManager.InstantiateUIPrefab(prefabResource.Object) as UITextPrinterPanel;
             PrinterPanel.transform.SetParent(Transform);
-
             await PrinterPanel.InitializeAsync();
 
-            inputManager.Continue.AddObjectTrigger(PrinterPanel.ContinueInputTrigger);
-            scriptPlayer.OnWaitingForInput += PrinterPanel.SetWaitForInputIndicatorVisible;
+            PrinterPanel.PrintedText = string.Empty;
+            RevealProgress = 0f;
 
             SetAuthorId(null);
-            ResetText();
             IsVisible = false;
         }
 
-        public override Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default)
+        public override Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            Appearance = appearance;
+            return Task.CompletedTask;
         }
 
-        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default)
+        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
-            await PrinterPanel?.SetIsVisibleAsync(isVisible, duration);
+            await PrinterPanel.SetIsVisibleAsync(isVisible, duration);
         }
 
-        public virtual async Task PrintTextAsync (string text, string actorId, params CancellationToken[] cancellationTokens)
+        public virtual async Task RevealTextAsync (float revealDelay, CancellationToken cancellationToken = default)
         {
             CancelRevealTextRoutine();
 
-            SetAuthorId(actorId);
-            AppendText(text);
-            LastPrintedText = text;
             if (!IsVisible) PrinterPanel.Show();
 
-            if (!scriptPlayer.IsSkipActive && PrintDelay > 0)
-            {
-                revealTextCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokens);
-                await ActorBehaviour.StartCoroutine(PrinterPanel.RevealPrintedTextOverTime(revealTextCTS.Token, PrintDelay));
-            }
-            PrinterPanel?.RevealPrintedText();
-
-            await waitForEndOfFrame;
-        }
-
-        public void ResetText ()
-        {
-            CancelRevealTextRoutine();
-            PrinterPanel.HidePrintedText();
-            PrinterPanel.PrintedText = IsUsingRichTags ? activeTagsOpenSequence + activeTagsCloseSequence : string.Empty;
-        }
-
-        public void AppendText (string textToAppend)
-        {
-            if (string.IsNullOrEmpty(textToAppend)) return;
-
-            var insertIndex = PrinterPanel.PrintedText.Length - activeTagsCloseSequence.Length;
-            PrinterPanel.PrintedText = PrinterPanel.PrintedText.Insert(insertIndex, textToAppend);
+            revealTextCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            await ActorBehaviour.StartCoroutine(PrinterPanel.RevealPrintedTextOverTime(revealTextCTS.Token, revealDelay));
         }
 
         public void SetRichTextTags (List<string> tags)
         {
-            if (tags is null) richTextTags.Clear();
-            else richTextTags = tags;
+            richTextTags.Clear();
 
-            if (IsUsingRichTags)
+            if (tags?.Count > 0)
+                richTextTags.AddRange(tags);
+
+            if (UsingRichTags)
             {
-                activeTagsOpenSequence = GetActiveTagsOpenSequence();
-                activeTagsCloseSequence = GetActiveTagsCloseSequence();
-                PrinterPanel.PrintedText += activeTagsOpenSequence + activeTagsCloseSequence;
+                activeOpenTags = GetActiveTagsOpenSequence();
+                activeCloseTags = GetActiveTagsCloseSequence();
             }
             else
             {
-                activeTagsOpenSequence = string.Empty;
-                activeTagsCloseSequence = string.Empty;
+                activeOpenTags = string.Empty;
+                activeCloseTags = string.Empty;
             }
+
+            SetText(Text); // Update the printed text with the tags.
         }
 
         public void SetAuthorId (string authorId)
@@ -146,7 +116,7 @@ namespace Naninovel
             PrinterPanel.ActorNameText = displayName;
 
             // Update author meta.
-            var authorMeta = characterManager.GetActorMetadata<CharacterMetadata>(authorId);
+            var authorMeta = characterManager.GetActorMetadata(authorId);
             PrinterPanel.OnAuthorChanged(authorId, authorMeta);
         }
 
@@ -154,23 +124,45 @@ namespace Naninovel
         {
             base.Dispose();
 
-            inputManager.Continue.RemoveObjectTrigger(PrinterPanel.ContinueInputTrigger);
-            scriptPlayer.OnWaitingForInput -= PrinterPanel.SetWaitForInputIndicatorVisible;
-            PrinterPanel = null;
             CancelRevealTextRoutine();
+
+            if (PrinterPanel != null)
+            {
+                ObjectUtils.DestroyOrImmediate(PrinterPanel.gameObject);
+                PrinterPanel = null;
+            }
+        }
+
+        protected override Vector3 GetBehaviourPosition ()
+        {
+            // Changing transform of the root obj won't work; modify content panel instead.
+            if (!PrinterPanel || !PrinterPanel.Content) return Vector3.zero;
+            return PrinterPanel.Content.position;
         }
 
         protected override void SetBehaviourPosition (Vector3 position)
         {
             // Changing transform of the root obj won't work; modify content panel instead.
             if (!PrinterPanel || !PrinterPanel.Content) return;
-            PrinterPanel.Content.localPosition = position;
+            PrinterPanel.Content.position = position;
+        }
+
+        protected override Quaternion GetBehaviourRotation ()
+        {
+            if (!PrinterPanel || !PrinterPanel.Content) return Quaternion.identity;
+            return PrinterPanel.Content.rotation;
         }
 
         protected override void SetBehaviourRotation (Quaternion rotation)
         {
             if (!PrinterPanel || !PrinterPanel.Content) return;
-            PrinterPanel.Content.localRotation = rotation;
+            PrinterPanel.Content.rotation = rotation;
+        }
+
+        protected override Vector3 GetBehaviourScale ()
+        {
+            if (!PrinterPanel || !PrinterPanel.Content) return Vector3.one;
+            return PrinterPanel.Content.localScale;
         }
 
         protected override void SetBehaviourScale (Vector3 scale)
@@ -183,10 +175,15 @@ namespace Naninovel
 
         protected override void SetBehaviourTintColor (Color tintColor) { }
 
-        protected virtual void SetPrintedText (string text)
+        private void SetText (string value)
         {
-            PrinterPanel.PrintedText = text;
-            PrinterPanel.RevealPrintedText();
+            if (value is null)
+                value = string.Empty;
+
+            text = value;
+
+            // Handle rich text tags before assigning the actual text.
+            PrinterPanel.PrintedText = UsingRichTags ? string.Concat(activeOpenTags, value, activeCloseTags) : value;
         }
 
         private void CancelRevealTextRoutine ()
@@ -194,16 +191,6 @@ namespace Naninovel
             revealTextCTS?.Cancel();
             revealTextCTS?.Dispose();
             revealTextCTS = null;
-        }
-
-        private void SetIsPrinterActive (bool isPrinterActive)
-        {
-            this.isPrinterActive = isPrinterActive;
-            if (!isPrinterActive)
-            {
-                PrinterPanel?.Hide();
-                CancelRevealTextRoutine();
-            }
         }
 
         private string GetActiveTagsOpenSequence ()

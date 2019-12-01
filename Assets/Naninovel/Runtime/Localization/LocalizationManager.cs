@@ -27,22 +27,20 @@ namespace Naninovel
         public event Action<string> OnLocaleChanged;
 
         /// <summary>
-        /// Whether the game is currently running in the default locale.
+        /// Whether the game is currently running under the source locale.
         /// </summary>
-        public bool UsingDefaulLocale => SelectedLocale == DefaultLocale;
-        public string DefaultLocale => config.DefaultLocale;
+        public bool SourceLocaleSelected => SelectedLocale == SourceLocale;
+        public string SourceLocale => config.SourceLocale;
         public string SelectedLocale { get; private set; }
-        public List<string> AvailableLocales { get; private set; }
+        public readonly List<string> AvailableLocales = new List<string>();
 
         private readonly LocalizationConfiguration config;
-        private ResourceProviderManager providersManager;
+        private readonly ResourceProviderManager providersManager;
+        private readonly HashSet<Func<Task>> changeLocaleTasks = new HashSet<Func<Task>>();
         private List<IResourceProvider> providerList;
-        private HashSet<Func<Task>> changeLocaleCallbacks;
 
         public LocalizationManager (LocalizationConfiguration config, ResourceProviderManager providersManager)
         {
-            AvailableLocales = new List<string>();
-            changeLocaleCallbacks = new HashSet<Func<Task>>();
             this.config = config;
             this.providersManager = providersManager;
         }
@@ -62,14 +60,15 @@ namespace Naninovel
             var settings = new Settings() {
                 SelectedLocale = SelectedLocale
             };
-            stateMap.SerializeObject(settings);
+            stateMap.SetState(settings);
             return Task.CompletedTask;
         }
 
         public async Task LoadServiceStateAsync (SettingsStateMap stateMap)
         {
-            var settings = stateMap.DeserializeObject<Settings>() ?? new Settings { SelectedLocale = DefaultLocale };
-            await SelectLocaleAsync(settings.SelectedLocale ?? DefaultLocale);
+            var defaultLocale = string.IsNullOrEmpty(config.DefaultLocale) ? SourceLocale : config.DefaultLocale;
+            var settings = stateMap.GetState<Settings>() ?? new Settings { SelectedLocale = defaultLocale };
+            await SelectLocaleAsync(settings.SelectedLocale ?? defaultLocale);
         }
 
         public bool IsLocaleAvailable (string locale) => AvailableLocales.Contains(locale);
@@ -85,18 +84,26 @@ namespace Naninovel
             if (locale == SelectedLocale) return;
 
             SelectedLocale = locale;
-            if (changeLocaleCallbacks.Count > 0)
-                await Task.WhenAll(changeLocaleCallbacks.Select(c => c.Invoke()));
+
+            foreach (var task in changeLocaleTasks)
+                await task();
+
             OnLocaleChanged?.Invoke(SelectedLocale);
         }
 
-        public void AddChangeLocaleCallback (Func<Task> callback) => changeLocaleCallbacks.Add(callback);
+        /// <summary>
+        /// Adds an async delegate to invoke after changing a locale.
+        /// </summary>
+        public void AddChangeLocaleTask (Func<Task> taskFunc) => changeLocaleTasks.Add(taskFunc);
 
-        public void RemoveChangeLocaleCallback (Func<Task> callback) => changeLocaleCallbacks.Remove(callback);
+        /// <summary>
+        /// Removes an async delegate to invoke after changing a locale.
+        /// </summary>
+        public void RemoveChangeLocaleTask (Func<Task> taskFunc) => changeLocaleTasks.Remove(taskFunc);
 
         public async Task<bool> IsLocalizedResourceAvailableAsync<TResource> (string path) where TResource : UnityEngine.Object
         {
-            if (UsingDefaulLocale) return false;
+            if (SourceLocaleSelected) return false;
             var localizedResourcePath = BuildLocalizedResourcePath(path);
             return await providerList.ResourceExistsAsync<TResource>(localizedResourcePath);
         }
@@ -132,8 +139,9 @@ namespace Naninovel
         private async Task RetrieveAvailableLocalesAsync ()
         {
             var resources = await providerList.LocateFoldersAsync(config.LoaderConfiguration.PathPrefix);
-            AvailableLocales = resources.Select(r => r.Name).Where(tag => LanguageTags.ContainsTag(tag)).ToList();
-            AvailableLocales.Add(DefaultLocale);
+            AvailableLocales.Clear();
+            AvailableLocales.AddRange(resources.Select(r => r.Name).Where(tag => LanguageTags.ContainsTag(tag)));
+            AvailableLocales.Add(SourceLocale);
         }
 
         private string BuildLocalizedResourcePath (string resourcePath) => $"{config.LoaderConfiguration.PathPrefix}/{SelectedLocale}/{resourcePath}";

@@ -16,7 +16,7 @@ namespace Naninovel
 
         private const string outputPathKey = "Naninovel." + nameof(ManagedTextWindow) + "." + nameof(OutputPath);
         private bool isWorking = false;
-        private bool deleteUnusedDocuments = true;
+        private bool deleteUnusedDocuments = false;
 
         [MenuItem("Naninovel/Tools/Managed Text")]
         public static void OpenWindow ()

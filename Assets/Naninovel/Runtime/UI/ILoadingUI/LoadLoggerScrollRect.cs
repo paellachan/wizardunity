@@ -13,6 +13,8 @@ namespace Naninovel.UI
         [SerializeField] private Text loggerText = null;
         [SerializeField] private Text memoryUsageText = null;
 
+        private static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+
         private ResourceProviderManager providersManager;
 
         protected override void Awake ()
@@ -56,9 +58,12 @@ namespace Naninovel.UI
             Application.logMessageReceived -= LogDebug;
         }
 
-        public void Log (string message)
+        public async void Log (string message)
         {
             if (!providersManager.LogResourceLoading) return;
+
+            await waitForEndOfFrame; // Otherwise could get here inside a rebuild loop and Unity will become sad :(
+            if (!Application.isPlaying) return;
 
             loggerText.text += message;
             loggerText.text += Environment.NewLine;

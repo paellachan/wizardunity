@@ -17,6 +17,8 @@ namespace Naninovel
         public ResourceLoaderConfiguration VoiceLoader = new ResourceLoaderConfiguration { PathPrefix = DefaultVoicePathPrefix };
         [Tooltip("When enabled, each `" + nameof(Commands.PrintText) + "` command will attempt to play voice clip at `VoiceResourcesPrefix/ScriptName/LineIndex.ActionIndex`.")]
         public bool EnableAutoVoicing = false;
+        [Tooltip("When enabled, will prevent concurrent voices playback by stopping any played voice clip before playing a new one.")]
+        public bool PreventVoiceOverlap = true;
 
         [Header("Audio Mixer")]
         [Tooltip("Audio mixer to control audio groups. When not provided, will use a default one.")]

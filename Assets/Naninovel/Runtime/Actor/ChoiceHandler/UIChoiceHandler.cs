@@ -4,6 +4,7 @@ using Naninovel.Commands;
 using Naninovel.UI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -11,20 +12,18 @@ using UnityEngine;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="IChoiceHandlerActor"/> implementation using <see cref="UI.ChoiceHandlerPanel"/> to represent an actor.
+    /// A <see cref="IChoiceHandlerActor"/> implementation using <see cref="UI.ChoiceHandlerPanel"/> to represent the actor.
     /// </summary>
     public class UIChoiceHandler : MonoBehaviourActor, IChoiceHandlerActor
     {
         public override string Appearance { get; set; }
         public override bool IsVisible { get => HandlerPanel.IsVisible; set => HandlerPanel.IsVisible = value; }
-        public bool IsHandlerActive { get => isHandlerActive; set => SetIsHandlerActive(value); }
         public IEnumerable<ChoiceState> Choices => choices;
 
         protected ChoiceHandlerPanel HandlerPanel { get; private set; }
 
+        private readonly List<ChoiceState> choices = new List<ChoiceState>();
         private ChoiceHandlerMetadata metadata;
-        private bool isHandlerActive = false;
-        private List<ChoiceState> choices = new List<ChoiceState>();
 
         public UIChoiceHandler (string id, ChoiceHandlerMetadata metadata)
             : base(id, metadata)
@@ -54,19 +53,19 @@ namespace Naninovel
             IsVisible = false;
         }
 
-        public override Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default)
+        public override Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }
 
-        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default)
+        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
-            await HandlerPanel?.SetIsVisibleAsync(isVisible, duration);
+            if (HandlerPanel)
+                await HandlerPanel.SetIsVisibleAsync(isVisible, duration);
         }
 
         public virtual void AddChoice (ChoiceState choice)
         {
-            HandlerPanel.Show();
             choices.Add(choice);
             HandlerPanel.AddChoiceButton(choice);
         }
@@ -75,17 +74,9 @@ namespace Naninovel
         {
             choices.RemoveAll(c => c.Id == id);
             HandlerPanel.RemoveChoiceButton(id);
-            if (choices.Count == 0) HandlerPanel.Hide();
         }
 
         public ChoiceState GetChoice (string id) => choices.FirstOrDefault(c => c.Id == id);
-
-        public virtual void SetIsHandlerActive (bool value)
-        {
-            isHandlerActive = value;
-            if (value) HandlerPanel.Show();
-            else HandlerPanel.Hide();
-        }
 
         protected override Color GetBehaviourTintColor () => Color.white;
 
@@ -93,17 +84,19 @@ namespace Naninovel
 
         protected async void HandleChoice (ChoiceState state)
         {
-            if (!IsHandlerActive) return;
+            if (!choices.Exists(c => c.Id.EqualsFast(state.Id))) return;
 
-            HandlerPanel?.RemoveAllChoiceButtons();
             choices.Clear();
-            IsHandlerActive = false;
+
+            if (HandlerPanel)
+            {
+                HandlerPanel.RemoveAllChoiceButtonsDelayed(); // Delayed to allow custom onClick logic.
+                HandlerPanel.Hide();
+            }
 
             if (!string.IsNullOrEmpty(state.SetExpression))
             {
                 var setAction = new SetCustomVariable { Expression = state.SetExpression };
-                if (state.UndoData != null)
-                    state.UndoData.SetAction = setAction;
                 await setAction.ExecuteAsync();
             }
 
@@ -111,8 +104,8 @@ namespace Naninovel
             {
                 // When no goto param specified -- attempt to select and play next command.
                 var player = Engine.GetService<ScriptPlayer>();
-                await player.SelectNextAsync();
-                player.Play();
+                var nextIndex = player.PlayedIndex + 1;
+                player.Play(nextIndex);
             }
             else await new Commands.Goto { Path = new Named<string>(state.GotoScript, state.GotoLabel) }.ExecuteAsync();
         }

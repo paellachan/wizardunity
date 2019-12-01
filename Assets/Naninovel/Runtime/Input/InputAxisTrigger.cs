@@ -16,19 +16,23 @@ namespace Naninovel
         [Tooltip("When axis value is below or equal to this value, the trigger won't be activated."), Range(0, .999f)]
         public float TriggerTolerance = .001f;
 
-        private bool wasActiveLastSample;
+        private float lastSampledValue;
 
         /// <summary>
-        /// Returns true when changed state from inactive to active since the last sample.
-        /// Returns false when changed state from active to inactive since the last sample.
-        /// Returns null when activation state hadn't changed since the last sample.
+        /// Returns the current axis value when it's above the trigger tolerance; zero otherwise.
         /// </summary>
-        public bool? Sample ()
+        public float Sample ()
         {
-            var active = IsActive();
-            var result = active != wasActiveLastSample ? (bool?)active : null;
-            wasActiveLastSample = active;
-            return result;
+            if (string.IsNullOrEmpty(AxisName)) return 0;
+
+            var value = Input.GetAxis(AxisName);
+
+            if (TriggerMode == InputAxisTriggerMode.Positive && value <= 0) return 0;
+            if (TriggerMode == InputAxisTriggerMode.Negative && value >= 0) return 0;
+
+            if (Mathf.Abs(value) < TriggerTolerance) return 0;
+
+            return value;
         }
 
         public override bool Equals (object obj)
@@ -59,16 +63,6 @@ namespace Naninovel
         public static bool operator != (InputAxisTrigger trigger1, InputAxisTrigger trigger2)
         {
             return !(trigger1 == trigger2);
-        }
-
-        private bool IsActive ()
-        {
-            if (string.IsNullOrWhiteSpace(AxisName)) return false;
-
-            var value = Input.GetAxis(AxisName);
-            if (TriggerMode == InputAxisTriggerMode.Positive && value <= 0) return false;
-            if (TriggerMode == InputAxisTriggerMode.Negative && value >= 0) return false;
-            return Mathf.Abs(value) > TriggerTolerance;
         }
     }
 }

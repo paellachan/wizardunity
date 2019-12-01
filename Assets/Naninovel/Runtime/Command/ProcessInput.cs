@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Naninovel.Commands
@@ -16,36 +17,17 @@ namespace Naninovel.Commands
     /// </example>
     public class ProcessInput : Command
     {
-        private struct UndoData { public bool Executed; public bool WasEnabled; }
-
         /// <summary>
         /// Whether to enable input processing.
         /// </summary>
         [CommandParameter(NamelessParameterAlias)]
         public bool InputEnabled { get => GetDynamicParameter(true); set => SetDynamicParameter(value); }
 
-        private UndoData undoData;
-
-        public override Task ExecuteAsync ()
+        public override Task ExecuteAsync (CancellationToken cancellationToken = default)
         {
             var inputManager = Engine.GetService<InputManager>();
-
-            undoData.Executed = true;
-            undoData.WasEnabled = inputManager.ProcessInput;
-
             inputManager.ProcessInput = InputEnabled;
 
-            return Task.CompletedTask;
-        }
-
-        public override Task UndoAsync ()
-        {
-            if (!undoData.Executed) return Task.CompletedTask;
-
-            var inputManager = Engine.GetService<InputManager>();
-            inputManager.ProcessInput = undoData.WasEnabled;
-
-            undoData = default;
             return Task.CompletedTask;
         }
     }

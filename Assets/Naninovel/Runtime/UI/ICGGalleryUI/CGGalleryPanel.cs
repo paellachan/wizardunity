@@ -46,18 +46,20 @@ namespace Naninovel.UI
         {
             base.OnEnable();
 
-            OnVisibilityChanged += HandleVisibilityChanged;
             viewerPanel.OnButtonClicked += viewerPanel.Hide;
-            inputManager.Cancel.OnStart += viewerPanel.Hide;
+
+            if (inputManager?.Cancel != null)
+                inputManager.Cancel.OnStart += viewerPanel.Hide;
         }
 
         protected override void OnDisable ()
         {
             base.OnDisable();
 
-            OnVisibilityChanged -= HandleVisibilityChanged;
             viewerPanel.OnButtonClicked -= viewerPanel.Hide;
-            inputManager.Cancel.OnStart -= viewerPanel.Hide;
+
+            if (inputManager?.Cancel != null)
+                inputManager.Cancel.OnStart -= viewerPanel.Hide;
         }
 
         public async Task InitializeAsync ()
@@ -78,11 +80,13 @@ namespace Naninovel.UI
             }
         }
 
-        private async void HandleVisibilityChanged (bool visible)
+        protected override void HandleVisibilityChanged (bool visible)
         {
+            base.HandleVisibilityChanged(visible);
+
             foreach (var slot in grid.GetAllSlots())
             {
-                if (visible) await slot.LoadCGTextureAsync();
+                if (visible) slot.LoadCGTextureAsync().WrapAsync();
                 else slot.UnloadCGTexture();
             }
         }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Naninovel
 {
     [System.Serializable]
-    public class CharactersConfiguration : OrthoActorManagerConfiguration
+    public class CharactersConfiguration : OrthoActorManagerConfiguration<CharacterMetadata>
     {
         public const string DefaultCharactersPathPrefix = "Characters";
         public const string DefaultAvatarsPathPrefix = "CharacterAvatars";
@@ -13,6 +13,9 @@ namespace Naninovel
         /// <see cref="ManagedTextRecord"/> category for the <see cref="CharacterMetadata.DisplayName"/> records.
         /// </summary>
         public const string DisplayNamesCategory = "CharacterNames";
+
+        public override CharacterMetadata DefaultActorMetadata => DefaultMetadata;
+        public override ActorMetadataMap<CharacterMetadata> ActorMetadataMap => Metadata;
 
         [Tooltip("Whether to evenly distribute characters by X-axis when adding a new character without a specified position.")]
         public bool AutoArrangeOnAdd = true;

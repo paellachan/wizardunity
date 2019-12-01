@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using Naninovel.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -96,10 +97,13 @@ namespace Naninovel
                 result.Add(printLine);
             }
 
-            // Add wait input command at the end.
-            var waitCommandLineText = CommandScriptLine.IdentifierLiteral + typeof(WaitForInput).Name;
-            var waitCommandLine = new CommandScriptLine(ScriptName, LineIndex, waitCommandLineText, scriptDefines, result.Count, IgnoreParseErrors);
-            result.Add(waitCommandLine);
+            // Add wait input command at the end; except when generic text contains a [skipInput] command.
+            if (lineText?.IndexOf(nameof(SkipInput), StringComparison.OrdinalIgnoreCase) == -1)
+            {
+                var waitCommandLineText = CommandScriptLine.IdentifierLiteral + typeof(WaitForInput).Name;
+                var waitCommandLine = new CommandScriptLine(ScriptName, LineIndex, waitCommandLineText, scriptDefines, result.Count, IgnoreParseErrors);
+                result.Add(waitCommandLine);
+            }
 
             return result;
         }
@@ -108,16 +112,16 @@ namespace Naninovel
         /// Transforms a generic text string to print command line text, which can be used 
         /// to create an <see cref="CommandScriptLine"/> for <see cref="PrintText"/> command.
         /// </summary>
-        private static string TransformGenericToPrintText (string genericText, string actorId = null, bool? resetPrinter = null, bool? waitForInput = null)
+        private static string TransformGenericToPrintText (string genericText, string authorId = null, bool? resetPrinter = null, bool? waitForInput = null)
         {
             var escapedText = genericText.Replace("\"", "\\\""); // Escape quotes in the printed text.
-            var result = $"{CommandScriptLine.IdentifierLiteral}print text{CommandScriptLine.AssignLiteral}\"{escapedText}\"";
-            if (!string.IsNullOrEmpty(actorId))
-                result += $" actor{CommandScriptLine.AssignLiteral}{actorId}";
+            var result = $"{CommandScriptLine.IdentifierLiteral}{nameof(PrintText)} {nameof(PrintText.Text)}{CommandScriptLine.AssignLiteral}\"{escapedText}\"";
+            if (!string.IsNullOrEmpty(authorId))
+                result += $" {nameof(PrintText.AuthorId)}{CommandScriptLine.AssignLiteral}{authorId}";
             if (resetPrinter.HasValue)
-                result += $" reset{CommandScriptLine.AssignLiteral}{resetPrinter.Value}";
+                result += $" {nameof(PrintText.ResetPrinter)}{CommandScriptLine.AssignLiteral}{resetPrinter.Value}";
             if (waitForInput.HasValue)
-                result += $" waitInput{CommandScriptLine.AssignLiteral}{waitForInput.Value}";
+                result += $" {nameof(PrintText.WaitForInput)}{CommandScriptLine.AssignLiteral}{waitForInput.Value}";
             return result;
         }
     }

@@ -77,9 +77,11 @@ MonoBehaviour:
   disableInteraction: 0
   isVisibleOnAwake: 0
   fadeTime: 0.3
+  focusObject: {fileID: 0}
   buttonsContainer: {fileID: 224198401566905306}
   defaultButtonPrefab: {fileID: 114935234543976500, guid: 42edc7aecc2c80841908c954370cb307,
     type: 3}
+  focusChoiceButtons: 0
 --- !u!225 &225470808532994266
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -101,7 +103,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1656062633739670}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_UiScaleMode: 1
@@ -123,7 +125,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1656062633739670}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1301386320, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreReversedGraphics: 1
@@ -176,7 +178,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1916852858651444}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1297475563, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
@@ -185,7 +187,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 100
+  m_Spacing: 15
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1

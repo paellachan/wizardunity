@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -8,7 +9,7 @@ using UnityEngine.SceneManagement;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="IBackgroundActor"/> implementation using <see cref="Scene"/> to represent an actor.
+    /// A <see cref="IBackgroundActor"/> implementation using <see cref="Scene"/> to represent the actor.
     /// </summary>
     /// <remarks>
     /// The implementation currently requires scenes to be at `./Assets/Scenes` project folder; resource providers are not supported.
@@ -24,7 +25,6 @@ namespace Naninovel
         protected TransitionalSpriteRenderer SpriteRenderer { get; }
 
         private const string pathPrefix = "Assets/Scenes/";
-        private const float rootPadding = 1000f;
         private string appearance;
         private bool isVisible;
         private static bool sharedResourcesInitialized;
@@ -45,31 +45,31 @@ namespace Naninovel
             SetVisibility(false);
         }
 
-        public override async Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default)
+        public override async Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             this.appearance = appearance;
 
             if (string.IsNullOrEmpty(appearance)) return;
 
             var scene = await GetOrLoadSceneDataAsync(appearance);
-            await SpriteRenderer.TransitionToAsync(scene.RenderTexture, duration, easingType);
+            await SpriteRenderer.TransitionToAsync(scene.RenderTexture, duration, easingType, cancellationToken: cancellationToken);
         }
 
         public async Task TransitionAppearanceAsync (string appearance, float duration, EasingType easingType = default, 
-            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null)
+            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null, CancellationToken cancellationToken = default)
         {
             if (transitionType.HasValue) SpriteRenderer.TransitionType = transitionType.Value;
             if (transitionParams.HasValue) SpriteRenderer.TransitionParams = transitionParams.Value;
             if (ObjectUtils.IsValid(customDissolveTexture)) SpriteRenderer.CustomDissolveTexture = customDissolveTexture;
 
-            await ChangeAppearanceAsync(appearance, duration, easingType);
+            await ChangeAppearanceAsync(appearance, duration, easingType, cancellationToken);
         }
 
-        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default)
+        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             this.isVisible = isVisible;
 
-            await SpriteRenderer.FadeToAsync(isVisible ? 1 : 0, duration, easingType);
+            await SpriteRenderer.FadeToAsync(isVisible ? 1 : 0, duration, easingType, cancellationToken);
         }
 
         public override async Task HoldResourcesAsync (object holder, string appearance)
@@ -113,12 +113,6 @@ namespace Naninovel
             SceneManager.MoveGameObjectToScene(rootObject, scene);
             foreach (var obj in scene.GetRootGameObjects())
                 obj.transform.SetParent(rootObject.transform, false);
-
-            // Move root object by padding value, so that it won't interfere with other scenes.
-            var xFactor = sceneDataMap.Count + (sceneDataMap.Count.IsEven() ? 1 : 0);
-            var yFactor = sceneDataMap.Count + (sceneDataMap.Count.IsEven() ? 0 : 1);
-            rootObject.transform.AddPosX(rootPadding * xFactor);
-            rootObject.transform.AddPosY(rootPadding * yFactor);
 
             // Create render texture and assign to first found camera of the scene's objects.
             var renderTexture = new RenderTexture(renderTextureDescriptor);

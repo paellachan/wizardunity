@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -8,7 +9,7 @@ using UnityEngine.Video;
 namespace Naninovel
 {
     /// <summary>
-    /// A <see cref="IBackgroundActor"/> implementation using <see cref="VideoPlayer"/> to represent an actor.
+    /// A <see cref="IBackgroundActor"/> implementation using <see cref="VideoPlayer"/> to represent the actor.
     /// </summary>
     public class VideoBackground : MonoBehaviourActor, IBackgroundActor
     {
@@ -47,32 +48,43 @@ namespace Naninovel
             SetVisibility(false);
         }
 
-        public override async Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default)
+        public override async Task ChangeAppearanceAsync (string appearance, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             this.appearance = appearance;
 
             if (string.IsNullOrEmpty(appearance)) return;
 
             var videoData = await GetOrLoadVideoDataAsync(appearance);
-            if (!videoData.Player.isPlaying) videoData.Player.Play();
-            await SpriteRenderer.TransitionToAsync(videoData.RenderTexture, duration, easingType);
+            if (!videoData.Player.isPrepared)
+            {
+                videoData.Player.Prepare();
+                while (!videoData.Player.isPrepared) 
+                    await waitForEndOfFrame;
+            }
+            videoData.Player.Play();
+
+            await SpriteRenderer.TransitionToAsync(videoData.RenderTexture, duration, easingType, cancellationToken: cancellationToken);
+
+            foreach (var kv in videoDataMap) // Make sure no other videos are playing.
+                if (!kv.Key.EqualsFast(appearance))
+                    kv.Value.Player.Stop();
         }
 
         public async Task TransitionAppearanceAsync (string appearance, float duration, EasingType easingType = default, 
-            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null)
+            TransitionType? transitionType = null, Vector4? transitionParams = null, Texture customDissolveTexture = null, CancellationToken cancellationToken = default)
         {
             if (transitionType.HasValue) SpriteRenderer.TransitionType = transitionType.Value;
             if (transitionParams.HasValue) SpriteRenderer.TransitionParams = transitionParams.Value;
             if (ObjectUtils.IsValid(customDissolveTexture)) SpriteRenderer.CustomDissolveTexture = customDissolveTexture;
 
-            await ChangeAppearanceAsync(appearance, duration, easingType);
+            await ChangeAppearanceAsync(appearance, duration, easingType, cancellationToken);
         }
 
-        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default)
+        public override async Task ChangeVisibilityAsync (bool isVisible, float duration, EasingType easingType = default, CancellationToken cancellationToken = default)
         {
             this.isVisible = isVisible;
 
-            await SpriteRenderer.FadeToAsync(isVisible ? 1 : 0, duration, easingType);
+            await SpriteRenderer.FadeToAsync(isVisible ? 1 : 0, duration, easingType, cancellationToken);
         }
 
         public override async Task HoldResourcesAsync (object holder, string appearance)
@@ -108,6 +120,7 @@ namespace Naninovel
 
             var renderTexture = new RenderTexture(renderTextureDescriptor);
             var videoPlayer = Engine.CreateObject<VideoPlayer>(videoName);
+            videoPlayer.playOnAwake = false;
 
             #if UNITY_WEBGL && !UNITY_EDITOR
             videoPlayer.source = VideoSource.Url;
@@ -123,9 +136,6 @@ namespace Naninovel
             videoPlayer.targetTexture = renderTexture;
             videoPlayer.isLooping = true;
             videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
-
-            videoPlayer.Prepare();
-            while (!videoPlayer.isPrepared) await waitForEndOfFrame;
 
             var sceneData = new VideoData { Player = videoPlayer, RenderTexture = renderTexture };
             videoDataMap[videoName] = sceneData;

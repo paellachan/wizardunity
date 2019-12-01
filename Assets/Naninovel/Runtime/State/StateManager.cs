@@ -1,6 +1,7 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityCommon;
 using UnityEngine;
@@ -15,83 +16,147 @@ namespace Naninovel
     public class StateManager : IEngineService
     {
         /// <summary>
-        /// Invoked before <see cref="SaveGameAsync(string)"/> execution.
-        /// You can use <see cref="GameSaveLoadArgs.StateMap"/> to serialize arbitrary custom objects to the game save slot.
-        /// </summary>
-        public event Action<GameSaveLoadArgs> OnGameSaveStarted;
-        /// <summary>
-        /// Invoked after <see cref="SaveGameAsync(string)"/> execution.
-        /// </summary>
-        public event Action<GameSaveLoadArgs> OnGameSaveFinished;
-        /// <summary>
-        /// Invoked before <see cref="LoadGameAsync(string)"/> execution.
+        /// Invoked when a game load operation (<see cref="LoadGameAsync(string)"/> or <see cref="QuickLoadAsync"/>) is started.
         /// </summary>
         public event Action<GameSaveLoadArgs> OnGameLoadStarted;
         /// <summary>
-        /// Invoked after <see cref="LoadGameAsync(string)"/> execution.
-        /// You can use <see cref="GameSaveLoadArgs.StateMap"/> to deserialize previously serialized custom objects from the loaded game save slot.
+        /// Invoked when a game load operation (<see cref="LoadGameAsync(string)"/> or <see cref="QuickLoadAsync"/>) is finished.
         /// </summary>
         public event Action<GameSaveLoadArgs> OnGameLoadFinished;
         /// <summary>
-        /// Invoked when any state loading operation is started;
-        /// eg, loading a saved game or resetting the engine state when returning to the title screen.
+        /// Invoked when a game save operation (<see cref="SaveGameAsync(string)"/> or <see cref="QuickSaveAsync"/>) is started.
         /// </summary>
-        public event Action OnLoadStarted;
+        public event Action<GameSaveLoadArgs> OnGameSaveStarted;
         /// <summary>
-        /// Invoked when any state loading operation is finished;
-        /// eg, loading a saved game or resetting the engine state when returning to the title screen.
+        /// Invoked when a game save operation (<see cref="SaveGameAsync(string)"/> or <see cref="QuickSaveAsync"/>) is finished.
         /// </summary>
-        public event Action OnLoadFinished;
+        public event Action<GameSaveLoadArgs> OnGameSaveFinished;
+        /// <summary>
+        /// Invoked when a state reset operation (<see cref="ResetStateAsync(Func{Task}[])"/>) is started.
+        /// </summary>
+        public event Action OnResetStarted;
+        /// <summary>
+        /// Invoked when a state reset operation (<see cref="ResetStateAsync(Func{Task}[])"/>) is finished.
+        /// </summary>
+        public event Action OnResetFinished;
+        /// <summary>
+        /// Invoked when a state rollback operation is started.
+        /// </summary>
+        public event Action OnRollbackStarted;
+        /// <summary>
+        /// Invoked when a state rollback operation is finished.
+        /// </summary>
+        public event Action OnRollbackFinished;
 
         public GlobalStateMap GlobalState { get; private set; }
         public SettingsStateMap SettingsState { get; private set; }
-        public GameStateSlotManager GameStateSlotManager { get; }
-        public GlobalStateSlotManager GlobalStateSlotManager { get; }
-        public SettingsSlotManager SettingsSlotManager { get; }
+        public readonly GameStateSlotManager GameStateSlotManager;
+        public readonly GlobalStateSlotManager GlobalStateSlotManager;
+        public readonly SettingsSlotManager SettingsSlotManager;
         public string LastQuickSaveSlotId => GameStateSlotManager.IndexToQuickSaveSlotId(1);
         public bool QuickLoadAvailable => GameStateSlotManager.SaveSlotExists(LastQuickSaveSlotId);
         public bool AnyGameSaveExists => GameStateSlotManager.AnySaveExists();
         public bool ResetStateOnLoad => config.ResetStateOnLoad;
+        public bool RollbackInProgress => rollbackTaskQueue.Count > 0;
 
         private readonly StateConfiguration config;
+        private readonly InputManager inputManager;
+        private readonly StateRollbackStack rollbackStateStack;
+        private readonly Queue<GameStateMap> rollbackTaskQueue = new Queue<GameStateMap>();
+        private readonly WaitForEndOfFrame waitForFrame = new WaitForEndOfFrame();
+        private readonly HashSet<Func<GameStateMap, Task>> onGameSerializeTasks = new HashSet<Func<GameStateMap, Task>>();
+        private readonly HashSet<Func<GameStateMap, Task>> onGameDeserializeTasks = new HashSet<Func<GameStateMap, Task>>();
 
-        public StateManager (StateConfiguration config, EngineConfiguration engineConfig)
+        public StateManager (StateConfiguration config, EngineConfiguration engineConfig, InputManager inputManager)
         {
             this.config = config;
+            this.inputManager = inputManager;
+
+            var allowUserRollback = config.StateRollbackMode == StateRollbackMode.Full || (config.StateRollbackMode == StateRollbackMode.Debug && Debug.isDebugBuild);
+            var rollbackCapacity = allowUserRollback ? Mathf.Max(1, config.StateRollbackSteps) : 1; // One step is reserved for game save operations.
+            rollbackStateStack = new StateRollbackStack(rollbackCapacity);
+
             var savesFolderPath = PathUtils.Combine(engineConfig.GeneratedDataPath, config.SaveFolderName);
-            GameStateSlotManager = new GameStateSlotManager(savesFolderPath, config.SaveSlotMask, config.QuickSaveSlotMask, config.SaveSlotLimit, config.QuickSaveSlotLimit);
-            GlobalStateSlotManager = new GlobalStateSlotManager(savesFolderPath, config.DefaultGlobalSlotId);
-            SettingsSlotManager = new SettingsSlotManager(engineConfig.GeneratedDataPath, config.DefaultSettingsSlotId);
+            GameStateSlotManager = new GameStateSlotManager(savesFolderPath, config.SaveSlotMask, config.QuickSaveSlotMask, config.SaveSlotLimit, config.QuickSaveSlotLimit, config.BinarySaveFiles);
+            GlobalStateSlotManager = new GlobalStateSlotManager(savesFolderPath, config.DefaultGlobalSlotId, config.BinarySaveFiles);
+            SettingsSlotManager = new SettingsSlotManager(engineConfig.GeneratedDataPath, config.DefaultSettingsSlotId, false);
         }
 
         public async Task InitializeServiceAsync ()
         {
             SettingsState = await LoadSettingsAsync();
             GlobalState = await LoadGlobalStateAsync();
+
+            Engine.GetService<ScriptPlayer>()?.AddPreExecutionTask(PushRollbackSnapshotAsync);
+
+            if (inputManager?.Rollback != null)
+                inputManager.Rollback.OnStart += HandleRollbackInputStart;
         }
 
-        public void ResetService () { }
+        public void ResetService ()
+        {
+            rollbackStateStack.Clear();
+        }
 
-        public void DestroyService () { }
+        public void DestroyService ()
+        {
+            if (config.StateRollbackMode != StateRollbackMode.Disabled)
+            {
+                Engine.GetService<ScriptPlayer>()?.RemovePreExecutionTask(PushRollbackSnapshotAsync);
+                if (inputManager?.Rollback != null)
+                    inputManager.Rollback.OnStart -= HandleRollbackInputStart;
+            }
+        }
+
+        /// <summary>
+        /// Adds an async task to invoke when serializing (saving) game state.
+        /// Use <see cref="GameStateMap"/> to serialize arbitrary custom objects to the game save slot.
+        /// </summary>
+        public void AddOnGameSerializeTask (Func<GameStateMap, Task> task) => onGameSerializeTasks.Add(task);
+
+        /// <summary>
+        /// Removes an async task to invoke when serializing (saving) game state.
+        /// </summary>
+        public void RemoveOnGameSerializeTask (Func<GameStateMap, Task> task) => onGameSerializeTasks.Remove(task);
+
+        /// <summary>
+        /// Adds an async task to invoke when de-serializing (loading) game state.
+        /// Use <see cref="GameStateMap"/> to deserialize previously serialized custom objects from the loaded game save slot.
+        /// </summary>
+        public void AddOnGameDeserializeTask (Func<GameStateMap, Task> task) => onGameDeserializeTasks.Add(task);
+
+        /// <summary>
+        /// Removes an async task to invoke when de-serializing (loading) game state.
+        /// </summary>
+        public void RemoveOnGameDeserializeTask (Func<GameStateMap, Task> task) => onGameDeserializeTasks.Remove(task);
 
         /// <summary>
         /// Saves current game state to the specified save slot.
         /// </summary>
         public async Task<GameStateMap> SaveGameAsync (string slotId)
         {
-            var state = new GameStateMap();
+            if (rollbackStateStack.Count == 0 || rollbackStateStack.Peek() is null)
+            {
+                Debug.LogError("Failed to save game state: rollback stack is empty.");
+                return null;
+            }
 
-            OnGameSaveStarted?.Invoke(new GameSaveLoadArgs(slotId, false, state));
+            var quick = slotId.StartsWithFast(config.QuickSaveSlotMask.GetBefore("{"));
 
+            OnGameSaveStarted?.Invoke(new GameSaveLoadArgs(slotId, quick));
+
+            var state = new GameStateMap(rollbackStateStack.Peek());
             state.SaveDateTime = DateTime.Now;
             state.Thumbnail = Engine.GetService<CameraManager>().CaptureThumbnail();
-            await SaveAllServicesToStateAsync<IStatefulService<GameStateMap>, GameStateMap>(state);
+            if (config.StateRollbackMode == StateRollbackMode.Full && config.SavedRollbackSteps > 0)
+                state.RollbackStackJson = rollbackStateStack.ToJson(config.SavedRollbackSteps);
+
             await GameStateSlotManager.SaveAsync(slotId, state);
 
             // Also save global state on every game save.
             await SaveGlobalStateAsync();
 
-            OnGameSaveFinished?.Invoke(new GameSaveLoadArgs(slotId, false, state));
+            OnGameSaveFinished?.Invoke(new GameSaveLoadArgs(slotId, quick));
 
             return state;
         }
@@ -104,22 +169,7 @@ namespace Naninovel
         {
             GameStateSlotManager.ShiftQuickSaveSlots();
             var firstSlotId = string.Format(config.QuickSaveSlotMask, 1);
-
-            var state = new GameStateMap();
-
-            OnGameSaveStarted?.Invoke(new GameSaveLoadArgs(firstSlotId, true, state));
-
-            state.SaveDateTime = DateTime.Now;
-            state.Thumbnail = Engine.GetService<CameraManager>().CaptureThumbnail();
-            await SaveAllServicesToStateAsync<IStatefulService<GameStateMap>, GameStateMap>(state);
-            await GameStateSlotManager.SaveAsync(firstSlotId, state);
-
-            // Also save global state on every game save.
-            await SaveGlobalStateAsync();
-
-            OnGameSaveFinished?.Invoke(new GameSaveLoadArgs(firstSlotId, true, state));
-
-            return state;
+            return await SaveGameAsync(firstSlotId);
         }
 
         /// <summary>
@@ -128,14 +178,15 @@ namespace Naninovel
         /// </summary>
         public async Task<GameStateMap> LoadGameAsync (string slotId)
         {
-            if (!GameStateSlotManager.SaveSlotExists(slotId))
+            if (string.IsNullOrEmpty(slotId) || !GameStateSlotManager.SaveSlotExists(slotId))
             {
                 Debug.LogError($"Slot '{slotId}' not found when loading '{typeof(GameStateMap)}' data.");
                 return null;
             }
 
-            OnLoadStarted?.Invoke();
-            OnGameLoadStarted?.Invoke(new GameSaveLoadArgs(slotId, false, null));
+            var quick = slotId.EqualsFast(LastQuickSaveSlotId);
+
+            OnGameLoadStarted?.Invoke(new GameSaveLoadArgs(slotId, quick));
 
             if (config.LoadStartDelay > 0)
                 await new WaitForSeconds(config.LoadStartDelay);
@@ -146,8 +197,13 @@ namespace Naninovel
             var state = await GameStateSlotManager.LoadAsync(slotId) as GameStateMap;
             await LoadAllServicesFromStateAsync<IStatefulService<GameStateMap>, GameStateMap>(state);
 
-            OnLoadFinished?.Invoke();
-            OnGameLoadFinished?.Invoke(new GameSaveLoadArgs(slotId, false, state));
+            if (config.StateRollbackMode == StateRollbackMode.Full && config.SavedRollbackSteps > 0)
+                rollbackStateStack.OverrideFromJson(state.RollbackStackJson);
+
+            foreach (var task in onGameDeserializeTasks)
+                await task(state);
+
+            OnGameLoadFinished?.Invoke(new GameSaveLoadArgs(slotId, quick));
 
             return state;
         }
@@ -155,32 +211,11 @@ namespace Naninovel
         /// <summary>
         /// Loads game state from the most recent quick save slot.
         /// </summary>
-        public async Task<GameStateMap> QuickLoadAsync ()
-        {
-            if (!GameStateSlotManager.SaveSlotExists(LastQuickSaveSlotId))
-            {
-                Debug.LogError($"Slot '{LastQuickSaveSlotId}' not found when quick-loading '{typeof(GameStateMap)}' data.");
-                return null;
-            }
+        public async Task<GameStateMap> QuickLoadAsync () => await LoadGameAsync(LastQuickSaveSlotId);
 
-            OnLoadStarted?.Invoke();
-            OnGameLoadStarted?.Invoke(new GameSaveLoadArgs(LastQuickSaveSlotId, true, null));
-
-            if (config.LoadStartDelay > 0)
-                await new WaitForSeconds(config.LoadStartDelay);
-
-            Engine.Reset();
-            await Resources.UnloadUnusedAssets();
-
-            var state = await GameStateSlotManager.LoadAsync(LastQuickSaveSlotId) as GameStateMap;
-            await LoadAllServicesFromStateAsync<IStatefulService<GameStateMap>, GameStateMap>(state);
-
-            OnLoadFinished?.Invoke();
-            OnGameLoadFinished?.Invoke(new GameSaveLoadArgs(LastQuickSaveSlotId, true, state));
-
-            return state;
-        }
-
+        /// <summary>
+        /// Serializes (saves) global state of the engine services.
+        /// </summary>
         public async Task<GlobalStateMap> SaveGlobalStateAsync ()
         {
             await SaveAllServicesToStateAsync<IStatefulService<GlobalStateMap>, GlobalStateMap>(GlobalState);
@@ -188,6 +223,9 @@ namespace Naninovel
             return GlobalState;
         }
 
+        /// <summary>
+        /// Serializes (saves) settings state of the engine services.
+        /// </summary>
         public async Task<SettingsStateMap> SaveSettingsAsync ()
         {
             await SaveAllServicesToStateAsync<IStatefulService<SettingsStateMap>, SettingsStateMap>(SettingsState);
@@ -202,7 +240,7 @@ namespace Naninovel
         /// <param name="additionalTasks">Additional tasks to perform during the reset (will be performed in order after the reset).</param>
         public async Task ResetStateAsync (params Func<Task>[] additionalTasks)
         {
-            OnLoadStarted?.Invoke();
+            OnResetStarted?.Invoke();
 
             if (config.LoadStartDelay > 0)
                 await new WaitForSeconds(config.LoadStartDelay);
@@ -216,7 +254,55 @@ namespace Naninovel
                     await task?.Invoke();
             }
 
-            OnLoadFinished?.Invoke();
+            OnResetFinished?.Invoke();
+        }
+
+        /// <summary>
+        /// Attempts to rollback (revert) all the engine services to a state they had at the provided playback spot. 
+        /// Has no effect when the rollback feature is disabled.
+        /// </summary>
+        /// <param name="playbackSpot">The playback spot to revert to.</param>
+        /// <returns>Whether the provided playback spot was found in the rollback stack and the operation succeeded.</returns>
+        public async Task<bool> RollbackAsync (PlaybackSpot playbackSpot)
+        {
+            var state = rollbackStateStack.Pop(playbackSpot);
+            if (state is null) return false;
+
+            await RollbackToStateAsync(state);
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to rollback (revert) all the engine services to a state they had at the previous rollback step. 
+        /// Has no effect when the rollback feature is disabled.
+        /// </summary>
+        /// <returns>Whether the provided the operation succeeded.</returns>
+        public async Task<bool> RollbackAsync ()
+        {
+            if (rollbackStateStack.Capacity <= 1) return false;
+
+            var state = rollbackStateStack.Pop();
+            if (state is null) return false;
+
+            await RollbackToStateAsync(state);
+            return true;
+        }
+
+        private async Task RollbackToStateAsync (GameStateMap state)
+        {
+            rollbackTaskQueue.Enqueue(state);
+            OnRollbackStarted?.Invoke();
+
+            while (rollbackTaskQueue.Peek() != state)
+                await waitForFrame;
+
+            await LoadAllServicesFromStateAsync<IStatefulService<GameStateMap>, GameStateMap>(state);
+
+            foreach (var task in onGameDeserializeTasks)
+                await task(state);
+
+            rollbackTaskQueue.Dequeue();
+            OnRollbackFinished?.Invoke();
         }
 
         private async Task<GlobalStateMap> LoadGlobalStateAsync ()
@@ -247,6 +333,27 @@ namespace Naninovel
         {
             foreach (var service in Engine.GetAllServices<TService>())
                 await service.LoadServiceStateAsync(state);
+        }
+
+        private async Task PushRollbackSnapshotAsync (Commands.Command executedCommand)
+        {
+            var state = new GameStateMap();
+            state.SaveDateTime = DateTime.Now;
+
+            await SaveAllServicesToStateAsync<IStatefulService<GameStateMap>, GameStateMap>(state);
+
+            foreach (var task in onGameSerializeTasks)
+                await task(state);
+
+            rollbackStateStack.Push(state);
+        }
+
+        private async void HandleRollbackInputStart ()
+        {
+            if (config.StateRollbackMode == StateRollbackMode.Disabled) return;
+            if (config.StateRollbackMode == StateRollbackMode.Debug && !Debug.isDebugBuild) return;
+
+            await RollbackAsync();
         }
     } 
 }

@@ -12,7 +12,10 @@ namespace Naninovel
         public static void ToggleScriptNavigator () => Engine.GetService<ScriptManager>()?.ToggleNavigator();
 
         [ConsoleCommand("debug")]
-        public static void ToggleDebugInfo () => UI.DebugInfoGUI.Toggle();
+        public static void ToggleDebugInfoGUI () => UI.DebugInfoGUI.Toggle();
+
+        [ConsoleCommand("var")]
+        public static void ToggleCustomVariableGUI () => UI.CustomVariableGUI.Toggle();
 
         #if UNITY_GOOGLE_DRIVE_AVAILABLE
         [ConsoleCommand("purge")]
@@ -39,8 +42,9 @@ namespace Naninovel
         public static async void Rewind (int line)
         {
             line = Mathf.Clamp(line, 1, int.MaxValue);
-            await Engine.GetService<ScriptPlayer>()?.RewindAsync(line - 1);
-            Engine.GetService<ScriptPlayer>()?.Play();
+            var player = Engine.GetService<ScriptPlayer>();
+            var ok = await player.RewindAsync(line - 1);
+            if (!ok) Debug.LogWarning($"Failed to rewind to line #{line} of script `{player.PlayedScript?.Name}`. Make sure the line exists in the script and it's playable (either a command or a generic text line). When rewinding forward, `@stop` commands can prevent reaching the target line. When rewinding backward the target line should've been previously played and be kept in the rollback stack (capacity controlled by `{nameof(StateConfiguration.StateRollbackSteps)}` property in state configuration).");
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

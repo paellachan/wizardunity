@@ -1,5 +1,6 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
+using System;
 using System.IO;
 using System.Text;
 using UnityEditor.Experimental.AssetImporters;
@@ -10,6 +11,8 @@ namespace Naninovel
     [ScriptedImporter(version: 1, ext: "nani")]
     public class ScriptImporter : ScriptedImporter
     {
+        public static event Action<ScriptAsset> OnModified;
+
         public override void OnImportAsset (AssetImportContext ctx)
         {
             var contents = string.Empty;
@@ -20,7 +23,7 @@ namespace Naninovel
                 contents = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
 
                 // Purge BOM. Unity auto adding it when creating script assets: https://git.io/fjVgY
-                if (contents[0] == '\uFEFF')
+                if (contents.Length > 0 && contents[0] == '\uFEFF')
                 {
                     contents = contents.Substring(1);
                     File.WriteAllText(ctx.assetPath, contents);
@@ -37,6 +40,8 @@ namespace Naninovel
 
                 ctx.AddObjectToAsset("naniscript", asset);
                 ctx.SetMainObject(asset);
+
+                OnModified?.Invoke(asset);
             }
         }
     }

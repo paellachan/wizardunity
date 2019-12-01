@@ -1,6 +1,8 @@
 ﻿// Copyright 2017-2019 Elringus (Artyom Sovetnikov). All Rights Reserved.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityCommon;
 
@@ -13,7 +15,16 @@ namespace Naninovel
     public class CustomVariableManager : IStatefulService<GameStateMap>, IStatefulService<GlobalStateMap>
     {
         [System.Serializable]
-        private class VariableMap : SerializableLiteralStringMap { }
+        private class GlobalState
+        {
+            public SerializableLiteralStringMap GlobalVariableMap;
+        }
+
+        [System.Serializable]
+        private class GameState
+        {
+            public SerializableLiteralStringMap LocalVariableMap;
+        }
 
         /// <summary>
         /// Invoked when a custom variable is created or its value changed.
@@ -25,49 +36,72 @@ namespace Naninovel
         /// </summary>
         public const string GlobalPrefix = "G_";
 
-        private VariableMap localVariableMap;
-        private VariableMap globalVariableMap;
+        private readonly CustomVariablesConfiguration config;
+        private readonly SerializableLiteralStringMap globalVariableMap;
+        private readonly SerializableLiteralStringMap localVariableMap;
 
-        public CustomVariableManager ()
+        public CustomVariableManager (CustomVariablesConfiguration config)
         {
-            localVariableMap = new VariableMap();
-            globalVariableMap = new VariableMap();
+            this.config = config;
+            globalVariableMap = new SerializableLiteralStringMap();
+            localVariableMap = new SerializableLiteralStringMap();
         }
 
         public Task InitializeServiceAsync () => Task.CompletedTask;
 
-        public void ResetService () { }
+        public void ResetService ()
+        {
+            ResetLocalVariables();
+        }
 
         public void DestroyService () { }
 
-        public Task SaveServiceStateAsync (GameStateMap stateMap)
-        {
-            stateMap.SerializeObject(localVariableMap);
-            return Task.CompletedTask;
-        }
-
-        public Task LoadServiceStateAsync (GameStateMap stateMap)
-        {
-            localVariableMap = stateMap.DeserializeObject<VariableMap>() ?? new VariableMap();
-            return Task.CompletedTask;
-        }
-
         public Task SaveServiceStateAsync (GlobalStateMap stateMap)
         {
-            stateMap.SerializeObject(globalVariableMap);
+            var state = new GlobalState {
+                GlobalVariableMap = new SerializableLiteralStringMap(globalVariableMap)
+            };
+            stateMap.SetState(state);
             return Task.CompletedTask;
         }
 
         public Task LoadServiceStateAsync (GlobalStateMap stateMap)
         {
-            globalVariableMap = stateMap.DeserializeObject<VariableMap>() ?? new VariableMap();
+            ResetGlobalVariables();
+
+            var state = stateMap.GetState<GlobalState>();
+            if (state is null) return Task.CompletedTask;
+
+            foreach (var kv in state.GlobalVariableMap)
+                globalVariableMap[kv.Key] = kv.Value;
+            return Task.CompletedTask;
+        }
+
+        public Task SaveServiceStateAsync (GameStateMap stateMap)
+        {
+            var state = new GameState {
+                LocalVariableMap = new SerializableLiteralStringMap(localVariableMap)
+            };
+            stateMap.SetState(state);
+            return Task.CompletedTask;
+        }
+
+        public Task LoadServiceStateAsync (GameStateMap stateMap)
+        {
+            ResetLocalVariables();
+
+            var state = stateMap.GetState<GameState>();
+            if (state is null) return Task.CompletedTask;
+
+            foreach (var kv in state.LocalVariableMap)
+                localVariableMap[kv.Key] = kv.Value;
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Checks whether a custom variable with the provided name is global.
         /// </summary>
-        public bool IsGlobalVariable (string name) => name.StartsWithFast(GlobalPrefix.ToLowerInvariant());
+        public bool IsGlobalVariable (string name) => name.StartsWith(GlobalPrefix, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Checks whether a variable with the provided name exists.
@@ -82,6 +116,29 @@ namespace Naninovel
         {
             if (!VariableExists(name)) return null;
             return IsGlobalVariable(name) ? globalVariableMap[name] : localVariableMap[name];
+        }
+
+        /// <summary>
+        /// Retrieves all the local variables (name -> value).
+        /// </summary>
+        public Dictionary<string, string> GetAllGlobalVariables () => globalVariableMap.ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        /// <summary>
+        /// Retrieves all the global variables (name -> value).
+        /// </summary>
+        public Dictionary<string, string> GetAllLocalVariables () => localVariableMap.ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        /// <summary>
+        /// Retrieves all the custom variables (name -> value), both global and local.
+        /// </summary>
+        public Dictionary<string, string> GetAllVariables ()
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var kv in globalVariableMap)
+                result.Add(kv.Key, kv.Value);
+            foreach (var kv in localVariableMap)
+                result.Add(kv.Key, kv.Value);
+            return result;
         }
 
         /// <summary>
@@ -110,19 +167,33 @@ namespace Naninovel
         }
 
         /// <summary>
-        /// Purges all the custom local state variables.
+        /// Purges all the custom local state variables and restores the 
+        /// pre-defined values specified in the service configuration.
         /// </summary>
         public void ResetLocalVariables ()
         {
             localVariableMap?.Clear();
+
+            foreach (var varData in config.PredefinedVariables)
+            {
+                if (IsGlobalVariable(varData.Name)) continue;
+                SetVariableValue(varData.Name, varData.Value);
+            }
         }
 
         /// <summary>
-        /// Purges all the custom global state variables.
+        /// Purges all the custom global state variables and restores the
+        /// pre-defined values specified in the service configuration.
         /// </summary>
         public void ResetGlobalVariables ()
         {
             globalVariableMap?.Clear();
+
+            foreach (var varData in config.PredefinedVariables)
+            {
+                if (!IsGlobalVariable(varData.Name)) continue;
+                SetVariableValue(varData.Name, varData.Value);
+            }
         }
 
         /// <summary>

@@ -21,6 +21,7 @@ namespace Naninovel
         public class UnlockablesMap : SerializableMap<string, bool>
         {
             public UnlockablesMap () : base(StringComparer.OrdinalIgnoreCase) { }
+            public UnlockablesMap (UnlockablesMap map) : base(map, StringComparer.OrdinalIgnoreCase) { }
         }
 
         [Serializable]
@@ -52,16 +53,18 @@ namespace Naninovel
         public Task SaveServiceStateAsync (GlobalStateMap stateMap)
         {
             var globalState = new GlobalState {
-                UnlockablesMap = unlockablesMap
+                UnlockablesMap = new UnlockablesMap(unlockablesMap)
             };
-            stateMap.SerializeObject(globalState);
+            stateMap.SetState(globalState);
             return Task.CompletedTask;
         }
 
         public Task LoadServiceStateAsync (GlobalStateMap stateMap)
         {
-            var state = stateMap.DeserializeObject<GlobalState>() ?? new GlobalState();
-            unlockablesMap = state.UnlockablesMap;
+            var state = stateMap.GetState<GlobalState>();
+            if (state is null) return Task.CompletedTask;
+
+            unlockablesMap = new UnlockablesMap(state.UnlockablesMap);
             return Task.CompletedTask;
         }
 

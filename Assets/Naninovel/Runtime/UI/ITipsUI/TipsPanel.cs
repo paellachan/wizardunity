@@ -44,7 +44,7 @@ namespace Naninovel.UI
 
         public Task InitializeAsync ()
         {
-            tipsSelectedState = stateManager.GlobalState.DeserializeObject<TipsSelectedState>() ?? new TipsSelectedState();
+            tipsSelectedState = stateManager.GlobalState.GetState<TipsSelectedState>() ?? new TipsSelectedState();
 
             var records = textManager.GetAllRecords(managedTextCategory);
             foreach (var record in records)
@@ -85,7 +85,6 @@ namespace Naninovel.UI
         {
             base.OnEnable();
 
-            OnVisibilityChanged += HandleVisibilityChanged;
             unlockableManager.OnItemUpdated += HandleUnlockableItemUpdated;
             inputManager.AddBlockingUI(this);
         }
@@ -94,7 +93,6 @@ namespace Naninovel.UI
         {
             base.OnDisable();
 
-            OnVisibilityChanged -= HandleVisibilityChanged;
             if (unlockableManager != null)
                 unlockableManager.OnItemUpdated -= HandleUnlockableItemUpdated;
             inputManager?.RemoveBlockingUI(this);
@@ -114,12 +112,14 @@ namespace Naninovel.UI
             descriptionText.text = recordValue.GetAfter(separatorLiteral)?.Replace("\\n", "\n")?.Trim() ?? string.Empty;
         }
 
-        private async void HandleVisibilityChanged (bool visible)
+        protected override void HandleVisibilityChanged (bool visible)
         {
+            base.HandleVisibilityChanged(visible);
+
             if (visible) return;
 
-            stateManager.GlobalState.SerializeObject(tipsSelectedState);
-            await stateManager.SaveGlobalStateAsync();
+            stateManager?.GlobalState.SetState(tipsSelectedState);
+            stateManager?.SaveGlobalStateAsync().WrapAsync();
         }
 
         private void HandleUnlockableItemUpdated (UnlockableItemUpdatedArgs args)

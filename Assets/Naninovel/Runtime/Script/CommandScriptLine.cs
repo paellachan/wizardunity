@@ -41,13 +41,17 @@ namespace Naninovel
             : base(scriptName, lineIndex, lineText, scriptDefines, ignoreErrors)
         {
             CommandName = ParseCommandName(Text);
-            Debug.Assert(!string.IsNullOrWhiteSpace(CommandName), ParseErrorMessage);
+            var nameValid = !string.IsNullOrWhiteSpace(CommandName);
 
             CommandParameters = ParseCommandParameters(Text, out var isError, IgnoreParseErrors);
-            Debug.Assert(!isError, ParseErrorMessage);
+            var parametersValid = !isError;
 
             InlineIndex = inlineIndex;
-            Debug.Assert(InlineIndex >= 0, ParseErrorMessage);
+            var inlineIndexValid = InlineIndex >= 0;
+
+            Valid = nameValid && parametersValid && inlineIndexValid;
+            if (!Valid && !IgnoreParseErrors)
+                Debug.LogError(ParseErrorMessage);
         }
 
         private static string ParseCommandName (string scriptLineText)
@@ -74,9 +78,9 @@ namespace Naninovel
                 {
                     if (cmdParams.ContainsKey(string.Empty))
                     {
+                        isError = true;
                         if (ignoreErrors) continue;
                         Debug.LogError("There could be only one nameless parameter per command.");
-                        isError = true;
                         return cmdParams;
                     }
                     paramValue = paramPair;
@@ -100,7 +104,13 @@ namespace Naninovel
                 // Restore escaped quotes.
                 paramValue = paramValue.Replace("\\\"", "\"");
 
-                cmdParams.Add(paramName, paramValue);
+                if (cmdParams.ContainsKey(paramName))
+                {
+                    isError = true;
+                    if (!ignoreErrors) Debug.LogError($"Dublicate parameter with ID `{paramName}`.");
+                    continue;
+                }
+                else cmdParams.Add(paramName, paramValue);
             }
 
             return cmdParams;

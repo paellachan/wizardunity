@@ -9,26 +9,18 @@ namespace Naninovel
     /// Manages background actors in the ortho mode.
     /// </summary>
     [InitializeAtRuntime]
-    public class BackgroundManager : OrthoActorManager<IBackgroundActor, BackgroundState>
+    public class BackgroundManager : OrthoActorManager<IBackgroundActor, BackgroundState, BackgroundMetadata, BackgroundsConfiguration>
     {
         /// <summary>
         /// ID of the background actor used by default.
         /// </summary>
         public const string MainActorId = "MainBackground";
 
-        public int ZOffset => config.ZOffset;
+        public int ZOffset => Configuration.ZOffset;
         public int TopmostZPosition => ZOffset - ManagedActors.Count;
 
-        private readonly BackgroundsConfiguration config;
-
         public BackgroundManager (BackgroundsConfiguration config, CameraManager orthoCamera)
-            : base(config, orthoCamera)
-        {
-            this.config = config;
-        }
-
-        public override ActorMetadata GetActorMetadata (string actorId) => 
-            config.Metadata.GetMetaById(actorId) ?? config.DefaultMetadata;
+            : base(config, orthoCamera) { }
 
         protected override async Task<IBackgroundActor> ConstructActorAsync (string actorId)
         {

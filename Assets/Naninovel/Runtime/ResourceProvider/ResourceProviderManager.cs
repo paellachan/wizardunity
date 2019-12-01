@@ -124,6 +124,16 @@ namespace Naninovel
             return localProvider;
         }
 
+        private IResourceProvider InitializeAddresableProvider ()
+        {
+            #if ADDRESSABLES_AVAILABLE
+            if (Application.isEditor) return null; // Otherwise could be issues with addressables added on previous build, but renamed after.
+            return new AddressableResourceProvider(ResourceProviderConfiguration.AddressableId);
+            #else
+            return null;
+            #endif
+        }
+
         private IResourceProvider InitializeProvider (ResourceProviderType providerType)
         {
             IResourceProvider provider;
@@ -132,6 +142,9 @@ namespace Naninovel
             {
                 case ResourceProviderType.Project:
                     provider = InitializeProjectProvider();
+                    break;
+                case ResourceProviderType.Addressable:
+                    provider = InitializeAddresableProvider();
                     break;
                 case ResourceProviderType.Local:
                     provider = InitializeLocalProvider();

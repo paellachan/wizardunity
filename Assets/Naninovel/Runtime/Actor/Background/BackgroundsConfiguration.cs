@@ -5,9 +5,12 @@ using UnityEngine;
 namespace Naninovel
 {
     [System.Serializable]
-    public class BackgroundsConfiguration : OrthoActorManagerConfiguration
+    public class BackgroundsConfiguration : OrthoActorManagerConfiguration<BackgroundMetadata>
     {
         public const string DefaultBackgroundsPathPrefix = "Backgrounds";
+
+        public override BackgroundMetadata DefaultActorMetadata => DefaultMetadata;
+        public override ActorMetadataMap<BackgroundMetadata> ActorMetadataMap => Metadata;
 
         [Tooltip("Z-axis offset distance (depth) from background actors to the camera.")]
         public int ZOffset = 100;
