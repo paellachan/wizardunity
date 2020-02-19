@@ -18,7 +18,16 @@ MonoBehaviour:
   GlobalDefinesScript: 
   InitializationScript: 
   TitleScript: 
-  StartGameScript: 
+  StartGameScript: start
+  AutoAddScripts: 1
+  EnableVisualEditor: 1
+  HideUnusedParameters: 1
+  InsertLineKey: 32
+  InsertLineModifier: 2
+  SaveScriptKey: 115
+  SaveScriptModifier: 2
+  VisualEditorPageLength: 1000
+  CustomStyleSheet: {fileID: 0}
   EnableCommunityModding: 0
   ExternalLoader:
     PathPrefix: Scripts

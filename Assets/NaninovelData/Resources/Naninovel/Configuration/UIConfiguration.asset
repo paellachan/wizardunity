@@ -15,7 +15,107 @@ MonoBehaviour:
   ObjectsLayer: 5
   RenderMode: 0
   SortingOffset: 1
+  DefaultUI:
+  - Name: 
+    TypeName: 
+    ResourcePath: ClickThroughPanel
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 1
+  - Name: Backlog
+    TypeName: Naninovel.UI.IBacklogUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IBacklogUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: CG Gallery
+    TypeName: Naninovel.UI.ICGGalleryUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: ICGGalleryUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Confirmation Dialogue
+    TypeName: Naninovel.UI.IConfirmationUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IConfirmationUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Continue Input Trigger
+    TypeName: Naninovel.UI.IContinueInputUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IContinueInputUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: External Scripts Browser
+    TypeName: Naninovel.UI.IExternalScriptsUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IExternalScriptsUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Loading Screen
+    TypeName: Naninovel.UI.ILoadingUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: ILoadingUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Movie Player
+    TypeName: Naninovel.UI.IMovieUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IMovieUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: State Rollback Indicator
+    TypeName: Naninovel.UI.IRollbackUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IRollbackUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Save/Load Game Menu
+    TypeName: Naninovel.UI.ISaveLoadUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: ISaveLoadUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Game Settings Menu
+    TypeName: Naninovel.UI.ISettingsUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: ISettingsUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Unlockable Tips Panel
+    TypeName: Naninovel.UI.ITipsUI, Elringus.Naninovel.Runtime, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    ResourcePath: ITipsUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Title Menu
+    TypeName: Naninovel.UI.ITitleUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: ITitleUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
+  - Name: Variable Input Dialogue
+    TypeName: Naninovel.UI.IVariableInputUI, Elringus.Naninovel.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    ResourcePath: IVariableInputUI
+    Enabled: 1
+    CustomPrefab: {fileID: 0}
+    Hidden: 0
   CustomUI:
   - {fileID: 4231647223112603941, guid: c1a639c40d2ce08419850415f8cb1b6f, type: 3}
   - {fileID: 7700162430679276755, guid: 5bdeb1f36f182df4e9e7de6c5c998ac7, type: 3}
   - {fileID: 5916752520047180938, guid: 04b5fb2014aec0d4699f4c122c03bebf, type: 3}
+  - {fileID: 3428005982439032659, guid: 2659b69d1d30f8341ac7e671947b23c0, type: 3}
+  - {fileID: 6306036015961478139, guid: 99583c3d84eba124aa20d86df970d2bf, type: 3}

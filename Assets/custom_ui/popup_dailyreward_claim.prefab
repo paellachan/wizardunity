@@ -281,7 +281,7 @@ MonoBehaviour:
       m_Calls: []
   hideOnLoad: 1
   saveVisibilityState: 1
-  blockInputWhenVisible: 1
+  blockInputWhenVisible: 0
 --- !u!223 &-5056578919496949248
 Canvas:
   m_ObjectHideFlags: 0
@@ -327,6 +327,7 @@ GameObject:
   - component: {fileID: 4664628185644968134}
   - component: {fileID: 6992823110953896249}
   - component: {fileID: 4119829559825711358}
+  - component: {fileID: 5385358309787095062}
   m_Layer: 0
   m_Name: Button
   m_TagString: Untagged
@@ -351,7 +352,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.312, y: 0.14647423}
   m_AnchorMax: {x: 0.7323695, y: 0.9255258}
-  m_AnchoredPosition: {x: 1.5, y: -0.5000038}
+  m_AnchoredPosition: {x: 1.5, y: -0.50000477}
   m_SizeDelta: {x: 1.7000122, y: -0.05999756}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4664628185644968134
@@ -444,6 +445,20 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &5385358309787095062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5159968316319910323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5975c9748a52c8d43b34c8d7c428cacd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scriptName: 
+  scriptText: '@goto start.undress'
 --- !u!1 &6141997154782333376
 GameObject:
   m_ObjectHideFlags: 0

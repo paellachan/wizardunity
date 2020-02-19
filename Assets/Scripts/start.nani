@@ -3,15 +3,47 @@
 @bgm relaxed_music
 @printer Wide
 @wait 1.5
+@choice "Are you jealous or something?" goto:.a2_1_a
+@choice "Don't say anything." goto:.a2_1_b
+@stop
+  #a2_1_a
+  @char a.complain
+  @fx ShakeCharacter params:a
+  Jealous? Me???
+  @char a.psycho
+  All that hours studying must have made you go insane.
+  (Such an over reaction…)
+  (Could it be? He’s actually jealous for real?)
+  @goto .a2_1_con
+  #a2_1_b
+  @char a.explain
+  a: You are free to do as you please, of course. You already know my opinion of him.
+  …
+  @goto .a2_1_con
+
+#a2_1_con
+Just to let you know, since you seem so concerned about me. Ray has training this afternoon, so I’m going by myself.
+Oh, I see.
 
 ¨Such a cold September...¨ I think to myself as I walk towards the entrance of the castle.
-
+@set G_choice=".starti"
+#starti
+@choice "Undress him (15 Gems)" goto:.choicegems
+@stop
+#choicegems
+@if G_gems>14
+  @goto .undress
+@else
+  @showUI popup_egp
+@stop
 
 I feel as overwhelmed as the first time I came here.
 The castle was outstandingly beautiful. Thousands of enchanted lamps floated illuminating the exterior.
-@hideUI hud_currency
 Loads of younger students are arriving. It makes me feel nostalgic.
-@showUI hud_currency
+#undress
+@set G_gems=G_gems-15
+This is an amazing porn scene
+
 I can't believe 5 years ago I was also one of them.
 I suddenly bump into someone.
 @sfx audiobump
@@ -30,7 +62,7 @@ Ray??!!
 r: What’s gotten into you?
 @char r.happy
 r: Cm’on! Aren’t you gonna give me a proper hug?
-
+@hideUI hud_currency
 @hide r
 @wait 1.0
 @back CG/image_hug.DropFade time:1.5
@@ -39,6 +71,7 @@ Before being able to say a thing, Ray comes closer and put his manly arms around
 When did he become that strong?
 @wait 1.0
 @back screen_exterior_night.DropFade time:1.5
+@showUI hud_currency
 @unlock CG/image_hug
 @char r.surprised
 r: Are you ok?
@@ -141,7 +174,7 @@ a: Well, four eyes…
 a: Let’s get going. It’s horribly noisy here.
 @Wait 1.0
 @hide a
-@ads
+
 @back screen_corridor.CircleReveal
 @Wait 1.0
 @char a.chatting pos:50,0
@@ -279,7 +312,7 @@ r: See you tomorrow!
 @stopBgm  time:1
 @wait 1.0
 ...
-@ads
+
 @bgm relaxed_music
 @back screen_corridor.CircleReveal
 @wait 1.5

@@ -17,3 +17,5 @@ MonoBehaviour:
     Value: 10
   - Name: G_tickets
     Value: 1
+  - Name: G_choice
+    Value: 1

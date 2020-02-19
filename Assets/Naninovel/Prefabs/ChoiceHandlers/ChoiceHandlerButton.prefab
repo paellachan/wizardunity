@@ -67,8 +67,6 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
@@ -122,8 +120,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
-    m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
-      Culture=neutral, PublicKeyToken=null
 --- !u!114 &114935234543976500
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,6 +136,9 @@ MonoBehaviour:
   isVisibleOnAwake: 1
   fadeTime: 0.3
   focusObject: {fileID: 0}
+  onVisibilityChanged:
+    m_PersistentCalls:
+      m_Calls: []
   onSummaryTextChanged:
     m_PersistentCalls:
       m_Calls:
@@ -154,8 +153,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: Naninovel.UI.ChoiceHandlerButton+SummaryTextChangedEvent, Elringus.Naninovel.Runtime,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &2004780567127242662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -245,10 +242,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 7d24045dcfc9abb4b809014e4a26b613, type: 3}
+    m_Font: {fileID: 12800000, guid: baa9a88eed093f64d9dd44749451bd29, type: 3}
     m_FontSize: 40
     m_FontStyle: 0
     m_BestFit: 0
